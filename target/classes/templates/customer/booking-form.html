@@ -25,7 +25,10 @@
                 <a th:href="@{/customer/menu}" class="nav-item">
                     <i class="bi bi-journal-text nav-icon"></i><span>Thực đơn</span>
                 </a>
-                <a th:href="@{/customer/booking}" class="nav-item active">
+                <a th:if="${isSeated}" th:href="@{/customer/order}" class="nav-item">
+                    <i class="bi bi-cart-fill nav-icon"></i><span>Gọi món</span>
+                </a>
+                <a th:href="@{/customer/booking}" class="nav-item active" th:classappend="${isSeated ? 'disabled' : ''}">
                     <i class="bi bi-calendar-plus-fill nav-icon"></i><span>Đặt bàn</span>
                 </a>
                 <a th:href="@{/customer/booking/history}" class="nav-item">
@@ -34,6 +37,13 @@
                 <a th:href="@{/customer/feedback}" class="nav-item">
                     <i class="bi bi-star-fill nav-icon"></i><span>Phản hồi</span>
                 </a>
+
+                <!-- Button Thanh toán (Tông màu green) cho phát triển tương lai -->
+                <div style="padding:16px 12px 0 12px;">
+                    <button type="button" class="btn btn-success btn-block" style="background:#10b981; border:none; padding:10px; font-weight:600; cursor:pointer;" onclick="alert('Chức năng Thanh Toán đang được phát triển!')">
+                        <i class="bi bi-cash-coin"></i> Thanh toán
+                    </button>
+                </div>
             </div>
             <div class="sidebar-footer">
                 <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
@@ -68,6 +78,10 @@
             </header>
 
             <main class="page-content">
+                <div th:if="${isSeated}" class="alert alert-danger mb-lg" style="box-shadow:var(--shadow-md);">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size:1.2rem;"></i>
+                    <span>Bạn đang ngồi tại bàn ăn (<strong th:text="${seatedBooking.assignedTable != null ? 'Bàn ' + seatedBooking.assignedTable.tableNumber : 'Bàn ăn'}"></strong>). Không thể tạo thêm đơn đặt bàn mới khi chưa hoàn tất!</span>
+                </div>
                 <div th:if="${errorMessage}" class="alert alert-danger" data-auto-dismiss="true">
                     <i class="bi bi-exclamation-circle-fill"></i><span th:text="${errorMessage}"></span>
                 </div>
@@ -170,7 +184,7 @@
                     </div>
 
                     <div style="text-align:right;">
-                        <button type="submit" class="btn btn-gold btn-lg">
+                        <button type="submit" class="btn btn-gold btn-lg" th:disabled="${isSeated}">
                             <i class="bi bi-calendar-check-fill"></i> Xác Nhận Đặt Bàn
                         </button>
                     </div>

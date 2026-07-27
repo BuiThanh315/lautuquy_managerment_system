@@ -11,4 +11,5 @@ import java.util.List;
 public interface BookingPreorderRepository extends JpaRepository<BookingPreorder, BookingPreorderId> {
     List<BookingPreorder> findByBookingId(Long bookingId);
     boolean existsByDishId(Long dishId);
+    void deleteByBookingIdAndDishId(Long bookingId, Long dishId);
 }

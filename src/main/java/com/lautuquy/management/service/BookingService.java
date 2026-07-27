@@ -14,6 +14,8 @@ public interface BookingService {
     List<BookingPreorder> getPreordersByBookingId(Long bookingId);
     void cancelBooking(Long id, String username);
     void confirmBooking(Long id);
+    void receiveBooking(Long id);
     void seatBooking(Long id, Long tableId);
     void cancelBookingByStaff(Long id);
+    Booking getActiveSeatedBooking(String username);
 }

@@ -157,6 +157,33 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
+    public void receiveBooking(Long id) {
+        Booking booking = getBookingById(id);
+        if (booking.getStatus() != Booking.Status.CONFIRMED && booking.getStatus() != Booking.Status.PENDING) {
+            throw new IllegalStateException("Chỉ có thể nhận bàn cho đơn ở trạng thái Đã xác nhận hoặc Chờ duyệt.");
+        }
+
+        if (booking.getAssignedTable() == null) {
+            List<RestaurantTable> tables = restaurantTableRepository.findByTableTypeId(booking.getTableType().getId());
+            RestaurantTable availableTable = tables.stream()
+                    .filter(t -> t.getStatus() == RestaurantTable.Status.EMPTY || t.getStatus() == RestaurantTable.Status.RESERVED)
+                    .findFirst()
+                    .orElseGet(() -> restaurantTableRepository.findAll().stream()
+                            .filter(t -> t.getStatus() == RestaurantTable.Status.EMPTY || t.getStatus() == RestaurantTable.Status.RESERVED)
+                            .findFirst()
+                            .orElseThrow(() -> new IllegalStateException("Hiện không còn bàn ăn nào trống để gán cho đơn này. Vui lòng dọn bàn trước.")));
+            booking.setAssignedTable(availableTable);
+        }
+
+        booking.setStatus(Booking.Status.SEATED);
+        RestaurantTable table = booking.getAssignedTable();
+        table.setStatus(RestaurantTable.Status.SERVING);
+        restaurantTableRepository.save(table);
+        bookingRepository.save(booking);
+    }
+
+    @Override
+    @Transactional
     public void seatBooking(Long id, Long tableId) {
         Booking booking = getBookingById(id);
         if (booking.getStatus() != Booking.Status.CONFIRMED && booking.getStatus() != Booking.Status.PENDING) {
@@ -195,5 +222,13 @@ public class BookingServiceImpl implements BookingService {
         }
 
         bookingRepository.save(booking);
+    }
+
+    @Override
+    public Booking getActiveSeatedBooking(String username) {
+        Account account = accountRepository.findByUsername(username).orElse(null);
+        if (account == null) return null;
+        return bookingRepository.findTopByAccountIdAndStatusOrderByCreatedAtDesc(account.getId(), Booking.Status.SEATED)
+                .orElse(null);
     }
 }

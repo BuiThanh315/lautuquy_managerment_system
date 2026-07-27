@@ -79,11 +79,13 @@ CREATE TABLE bookings (
     booking_date   DATE NOT NULL,
     booking_time   TIME NOT NULL,
     table_type_id  BIGINT NOT NULL,
+    assigned_table_id BIGINT,
     special_notes  VARCHAR(255),
     status         ENUM('PENDING','CONFIRMED','SEATED','CANCELLED') NOT NULL DEFAULT 'PENDING',
     created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_bookings_account   FOREIGN KEY (account_id) REFERENCES accounts(id),
-    CONSTRAINT fk_bookings_tabletype FOREIGN KEY (table_type_id) REFERENCES table_types(id)
+    CONSTRAINT fk_bookings_tabletype FOREIGN KEY (table_type_id) REFERENCES table_types(id),
+    CONSTRAINT fk_bookings_table     FOREIGN KEY (assigned_table_id) REFERENCES restaurant_tables(id)
 ) ENGINE=InnoDB;
 
 -- =========================================================
@@ -103,11 +105,13 @@ CREATE TABLE booking_preorders (
 -- =========================================================
 CREATE TABLE orders (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    booking_id BIGINT,
     account_id BIGINT NOT NULL,
     table_id   BIGINT NOT NULL,
     order_type ENUM('DINE_IN','TAKE_AWAY') NOT NULL DEFAULT 'DINE_IN',
     status     ENUM('PROCESSING','COMPLETED','CANCELLED') NOT NULL DEFAULT 'PROCESSING',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_orders_booking FOREIGN KEY (booking_id) REFERENCES bookings(id),
     CONSTRAINT fk_orders_account FOREIGN KEY (account_id) REFERENCES accounts(id),
     CONSTRAINT fk_orders_table   FOREIGN KEY (table_id)   REFERENCES restaurant_tables(id)
 ) ENGINE=InnoDB;
@@ -147,6 +151,7 @@ CREATE TABLE invoices (
 -- ---------------------------------------------------------
 -- accounts: 1 Admin, 2 Staff, 5 Customer (1 bị LOCKED để test)
 -- Mật khẩu mẫu (plaintext gốc trước khi hash BCrypt): "123456"
+-- (GIỮ NGUYÊN TÀI KHOẢN THEO YÊU CẦU)
 -- ---------------------------------------------------------
 INSERT INTO accounts (id, username, password, full_name, email, phone, role, status, created_at) VALUES
 (1, 'admin01',   '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.AQvq4a1', 'Nguyễn Văn Quản',  'admin@lautuquy.vn',    '0900000001', 'ADMIN',    'ACTIVE', '2026-06-01 08:00:00'),
@@ -159,30 +164,30 @@ INSERT INTO accounts (id, username, password, full_name, email, phone, role, sta
 (8, 'khachE_vipham', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.AQvq4a1', 'Hoàng Gian Lận',   'ganlanx@gmail.com',    '0955555555', 'CUSTOMER', 'LOCKED', '2026-06-04 11:00:00');
 
 -- ---------------------------------------------------------
--- categories: 5 danh mục
+-- categories: 5 danh mục chính
 -- ---------------------------------------------------------
 INSERT INTO categories (id, name, description) VALUES
-(1, 'Nước lẩu',        'Các loại nước lẩu chính: Thái, Kim Chi, Nấm...'),
-(2, 'Đồ nhúng bò',      'Các loại thịt bò tươi dùng để nhúng lẩu'),
-(3, 'Đồ nhúng hải sản', 'Tôm, mực, ngao, cá phi lê...'),
-(4, 'Rau nấm',          'Các loại rau và nấm ăn kèm lẩu'),
-(5, 'Đồ uống',          'Nước ngọt, bia, nước ép trái cây');
+(1, 'Nước lẩu',        'Các loại nước lẩu đặc trưng: Thái, Kim Chi, Nấm...'),
+(2, 'Đồ nhúng bò',      'Thịt bò tươi ngon thái mỏng nhúng lẩu'),
+(3, 'Đồ nhúng hải sản', 'Tôm, mực, ngao, cá phi lê tươi sống'),
+(4, 'Rau nấm tươi',     'Các loại rau củ nấm sạch dùng kèm lẩu'),
+(5, 'Đồ uống & Trái cây','Nước ngọt, bia, nước ép trái cây giải khát');
 
 -- ---------------------------------------------------------
--- dishes: các món ăn (1 món OUT_OF_STOCK để test trạng thái hết hàng)
+-- dishes: các món ăn (Bò Wagyu quantity = 0 -> OUT_OF_STOCK để kiểm thử)
 -- ---------------------------------------------------------
 INSERT INTO dishes (id, category_id, name, image_url, price, description, quantity, status) VALUES
-(1, 1, 'Nước lẩu Thái chua cay',   '/images/dishes/lau-thai.jpg',    89000,  'Vị chua cay đặc trưng Thái Lan', 50, 'AVAILABLE'),
-(2, 1, 'Nước lẩu Kim Chi',         '/images/dishes/lau-kimchi.jpg',  99000,  'Vị cay nồng kiểu Hàn Quốc',      50, 'AVAILABLE'),
-(3, 1, 'Nước lẩu Nấm chay',        '/images/dishes/lau-nam.jpg',     79000,  'Thanh đạm, phù hợp ăn chay',     50, 'AVAILABLE'),
-(4, 2, 'Bò Mỹ ba chỉ',             '/images/dishes/bo-my.jpg',       129000, 'Thịt bò Mỹ thái lát mỏng',       50, 'AVAILABLE'),
-(5, 2, 'Bò Wagyu',                 '/images/dishes/bo-wagyu.jpg',    259000, 'Bò Wagyu vân mỡ cao cấp',        0,  'OUT_OF_STOCK'),
-(6, 3, 'Tôm sú tươi',              '/images/dishes/tom-su.jpg',      149000, 'Tôm sú size lớn',                50, 'AVAILABLE'),
-(7, 3, 'Mực ống',                  '/images/dishes/muc-ong.jpg',     109000, 'Mực tươi làm sạch',              50, 'AVAILABLE'),
-(8, 4, 'Nấm kim châm',             '/images/dishes/nam-kim-cham.jpg',39000,  'Nấm kim châm tươi',              50, 'AVAILABLE'),
-(9, 4, 'Rau muống',                '/images/dishes/rau-muong.jpg',   25000,  'Rau muống nhặt sẵn',             50, 'AVAILABLE'),
-(10, 5, 'Coca-Cola lon',           '/images/dishes/coca.jpg',        15000,  'Nước ngọt có ga',                50, 'AVAILABLE'),
-(11, 5, 'Bia Tiger',               '/images/dishes/tiger.jpg',       25000,  'Bia lon 330ml',                  50, 'AVAILABLE');
+(1, 1, 'Nước lẩu Thái chua cay',   '/images/dishes/lau-thai.jpg',    89000,  'Vị chua cay nồng nàn chuẩn vị Thái', 50, 'AVAILABLE'),
+(2, 1, 'Nước lẩu Kim Chi Hàn Quốc', '/images/dishes/lau-kimchi.jpg',  99000,  'Vị cay nồng đậm đà chuẩn vị Hàn',    50, 'AVAILABLE'),
+(3, 1, 'Nước lẩu Nấm thanh vị',    '/images/dishes/lau-nam.jpg',     79000,  'Hương vị thanh ngọt, bổ dưỡng',       50, 'AVAILABLE'),
+(4, 2, 'Ba chỉ bò Mỹ nhúng lẩu',   '/images/dishes/bo-my.jpg',       129000, 'Thịt ba chỉ bò Mỹ vân mỡ đều ngon',   50, 'AVAILABLE'),
+(5, 2, 'Bò Wagyu Nhật Bản',        '/images/dishes/bo-wagyu.jpg',    259000, 'Thịt bò Wagyu cao cấp mềm mịn',       0,  'OUT_OF_STOCK'),
+(6, 3, 'Tôm sú tươi sống',         '/images/dishes/tom-su.jpg',      149000, 'Tôm sú tươi nhúng lẩu giòn ngọt',     45, 'AVAILABLE'),
+(7, 3, 'Mực ống tươi',             '/images/dishes/muc-ong.jpg',     109000, 'Mực ống tươi được làm sạch sẵn',      40, 'AVAILABLE'),
+(8, 4, 'Nấm kim châm tươi',        '/images/dishes/nam-kim-cham.jpg',39000,  'Nấm kim châm trắng giòn',            50, 'AVAILABLE'),
+(9, 4, 'Rau muống nhặt sẵn',       '/images/dishes/rau-muong.jpg',   25000,  'Rau muống xanh tươi',                50, 'AVAILABLE'),
+(10, 5, 'Coca-Cola ướp lạnh lon',   '/images/dishes/coca.jpg',        15000,  'Lon 330ml giải khát cực đã',          50, 'AVAILABLE'),
+(11, 5, 'Bia Tiger lon 330ml',     '/images/dishes/tiger.jpg',       25000,  'Bia Tiger mát lạnh',                 50, 'AVAILABLE');
 
 -- ---------------------------------------------------------
 -- table_types: REGULAR & VIP
@@ -194,7 +199,7 @@ INSERT INTO table_types (id, capacity, class) VALUES
 (4, 10, 'VIP');
 
 -- ---------------------------------------------------------
--- restaurant_tables: phủ đủ 4 trạng thái để test
+-- restaurant_tables: phủ đủ các trạng thái EMPTY, DIRTY, SERVING, RESERVED
 -- ---------------------------------------------------------
 INSERT INTO restaurant_tables (id, table_number, table_type_id, status) VALUES
 (1, 'T01', 1, 'EMPTY'),
@@ -207,39 +212,40 @@ INSERT INTO restaurant_tables (id, table_number, table_type_id, status) VALUES
 (8, 'T05', 1, 'EMPTY');
 
 -- ---------------------------------------------------------
--- bookings: phủ đủ 4 trạng thái PENDING/CONFIRMED/SEATED/CANCELLED
+-- bookings: Mốc ngày giờ hợp lệ từ ngày hiện tại 2026-07-27 tới tương lai
 -- ---------------------------------------------------------
-INSERT INTO bookings (id, account_id, customer_name, customer_phone, booking_date, booking_time, table_type_id, special_notes, status, created_at) VALUES
-(1, 4, 'Phạm Thu Hà',   '0911111111', '2026-07-25', '18:30:00', 3, 'Sinh nhật, cần bàn VIP yên tĩnh', 'PENDING',   '2026-07-22 08:00:00'),
-(2, 5, 'Đỗ Minh Khang', '0922222222', '2026-07-23', '19:00:00', 2, NULL,                              'CONFIRMED', '2026-07-21 15:00:00'),
-(3, 6, 'Vũ Ngọc Lan',   '0933333333', '2026-07-22', '12:00:00', 3, 'Đã xếp bàn V02',                   'SEATED',    '2026-07-20 09:00:00'),
-(4, 7, 'Bùi Anh Tuấn',  '0944444444', '2026-07-21', '20:00:00', 1, 'Khách hủy do bận đột xuất',         'CANCELLED', '2026-07-19 10:00:00'),
-(5, 4, 'Phạm Thu Hà',   '0911111111', '2026-07-22', '11:30:00', 2, 'Đã xếp bàn T03',                   'SEATED',    '2026-07-18 08:30:00');
+INSERT INTO bookings (id, account_id, customer_name, customer_phone, booking_date, booking_time, table_type_id, assigned_table_id, special_notes, status, created_at) VALUES
+(1, 4, 'Phạm Thu Hà',   '0911111111', '2026-07-27', '18:30:00', 3, NULL, 'Sinh nhật, cần không gian VIP',      'PENDING',   '2026-07-27 08:00:00'),
+(2, 5, 'Đỗ Minh Khang', '0922222222', '2026-07-27', '19:30:00', 2, NULL, 'Yêu cầu ghế trẻ em',                 'CONFIRMED', '2026-07-27 09:15:00'),
+(3, 6, 'Vũ Ngọc Lan',   '0933333333', '2026-07-28', '12:00:00', 3, NULL, 'Tiệc gia đình cuối tuần',            'CONFIRMED', '2026-07-27 09:30:00'),
+(4, 7, 'Bùi Anh Tuấn',  '0944444444', '2026-07-27', '11:30:00', 3, 6,    'Khách đã tới, nhận bàn V02',          'SEATED',    '2026-07-27 10:00:00'),
+(5, 4, 'Phạm Thu Hà',   '0911111111', '2026-07-29', '20:00:00', 1, NULL, 'Khách báo bận hủy đơn',               'CANCELLED', '2026-07-27 10:15:00');
 
 -- ---------------------------------------------------------
--- booking_preorders: món đặt trước gắn với booking
+-- booking_preorders: món đặt trước gắn với các booking mẫu
 -- ---------------------------------------------------------
 INSERT INTO booking_preorders (booking_id, dish_id, quantity) VALUES
-(1, 1, 1),   -- Booking 1: 1 nước lẩu Thái
-(1, 4, 2),   -- Booking 1: 2 phần bò Mỹ
-(1, 6, 1),   -- Booking 1: 1 phần tôm sú
-(2, 2, 1),   -- Booking 2: 1 nước lẩu Kim Chi
-(2, 8, 2),   -- Booking 2: 2 phần nấm kim châm
-(3, 1, 1),   -- Booking 3: 1 nước lẩu Thái
-(3, 7, 1);   -- Booking 3: 1 phần mực ống
+(1, 1, 1),   -- Booking 1: 1 Nước lẩu Thái
+(1, 4, 2),   -- Booking 1: 2 Phần ba chỉ bò Mỹ
+(1, 6, 1),   -- Booking 1: 1 Phần tôm sú
+(2, 2, 1),   -- Booking 2: 1 Nước lẩu Kim Chi
+(2, 8, 2),   -- Booking 2: 2 Phần nấm kim châm
+(3, 3, 1),   -- Booking 3: 1 Nước lẩu nấm
+(3, 7, 2),   -- Booking 3: 2 Phần mực ống
+(4, 1, 1),   -- Booking 4: 1 Nước lẩu Thái
+(4, 4, 3);   -- Booking 4: 3 Phần ba chỉ bò Mỹ
 
 -- ---------------------------------------------------------
--- orders: phủ đủ 3 trạng thái PROCESSING/COMPLETED/CANCELLED
--- gắn với booking 3 (SEATED->V02) và booking 5 (SEATED->T03), cùng 1 order vãng lai không đặt trước
+-- orders: 4 đơn gọi món tại bàn
 -- ---------------------------------------------------------
-INSERT INTO orders (id, account_id, table_id, order_type, status, created_at) VALUES
-(1, 2, 6, 'DINE_IN', 'PROCESSING', '2026-07-22 12:05:00'),  -- từ booking 3, bàn V02 đang SERVING
-(2, 3, 3, 'DINE_IN', 'PROCESSING', '2026-07-22 11:35:00'),  -- từ booking 5, bàn T03 đang SERVING
-(3, 2, 2, 'DINE_IN', 'COMPLETED',  '2026-07-21 19:10:00'),  -- order đã thanh toán xong, bàn T02 còn DIRTY
-(4, 3, 4, 'DINE_IN', 'CANCELLED',  '2026-07-20 20:00:00');  -- order bị hủy giữa chừng
+INSERT INTO orders (id, booking_id, account_id, table_id, order_type, status, created_at) VALUES
+(1, 4, 2, 6, 'DINE_IN', 'PROCESSING', '2026-07-27 11:35:00'),  -- Đơn từ Booking 4, Bàn V02 (SERVING)
+(2, NULL, 3, 3, 'DINE_IN', 'PROCESSING', '2026-07-27 10:45:00'),  -- Đơn vãng lai Bàn T03 (SERVING)
+(3, NULL, 2, 2, 'DINE_IN', 'COMPLETED',  '2026-07-27 09:00:00'),  -- Đơn đã hoàn tất thanh toán Bàn T02 (DIRTY)
+(4, NULL, 3, 4, 'DINE_IN', 'CANCELLED',  '2026-07-27 08:30:00');  -- Đơn hủy Bàn T04
 
 -- ---------------------------------------------------------
--- order_items: chi tiết món trong từng order (actual_price = snapshot giá dishes)
+-- order_items: chi tiết món ăn trong đơn
 -- ---------------------------------------------------------
 INSERT INTO order_items (id, order_id, dish_id, quantity, actual_price) VALUES
 (1, 1, 1, 1, 89000),
@@ -254,11 +260,10 @@ INSERT INTO order_items (id, order_id, dish_id, quantity, actual_price) VALUES
 (10, 4, 1, 1, 89000);
 
 -- ---------------------------------------------------------
--- invoices: order 3 đã PAID, các order khác chưa có hóa đơn
+-- invoices: Hóa đơn thanh toán cho đơn 3
 -- ---------------------------------------------------------
 INSERT INTO invoices (id, order_id, total_amount, final_amount, payment_method, payment_status, created_at) VALUES
-(1, 3, 258000, 245000, 'CASH', 'PAID', '2026-07-21 20:05:00');
--- Ghi chú: final_amount < total_amount do đã áp dụng giảm giá 5% khi thanh toán
+(1, 3, 258000, 245000, 'CASH', 'PAID', '2026-07-27 09:45:00');
 
 -- =========================================================
 -- HẾT FILE — sẵn sàng import bằng: mysql -u root -p < lautuquy_db_schema.sql

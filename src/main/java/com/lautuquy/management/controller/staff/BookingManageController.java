@@ -60,6 +60,17 @@ public class BookingManageController {
         return "redirect:/staff/bookings";
     }
 
+    @PostMapping("/{id}/receive")
+    public String receiveBooking(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            bookingService.receiveBooking(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã nhận bàn thành công cho đơn #" + id);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể nhận bàn: " + e.getMessage());
+        }
+        return "redirect:/staff/bookings";
+    }
+
     @PostMapping("/{id}/seat")
     public String seatBooking(@PathVariable Long id,
                               @RequestParam("tableId") Long tableId,

@@ -12,4 +12,5 @@ public interface RestaurantTableRepository extends JpaRepository<RestaurantTable
     Optional<RestaurantTable> findByTableNumber(String tableNumber);
     boolean existsByTableNumber(String tableNumber);
     List<RestaurantTable> findByStatus(RestaurantTable.Status status);
+    List<RestaurantTable> findByTableTypeId(Long tableTypeId);
 }

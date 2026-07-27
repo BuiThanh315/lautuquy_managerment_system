@@ -42,19 +42,22 @@ public class BookingController {
     @GetMapping
     public String showBookingForm(Model model, Principal principal) {
         BookingRequest bookingRequest = new BookingRequest();
+        Booking seatedBooking = null;
         if (principal != null) {
             var account = accountService.loadUserByUsername(principal.getName());
             if (account instanceof com.lautuquy.management.entity.Account acc) {
                 bookingRequest.setCustomerName(acc.getFullName());
                 bookingRequest.setCustomerPhone(acc.getPhone());
             }
+            seatedBooking = bookingService.getActiveSeatedBooking(principal.getName());
         }
 
         model.addAttribute("bookingRequest", bookingRequest);
         model.addAttribute("tableTypes", tableService.getAllTableTypes());
-        // Lấy danh sách món ăn đang có sẵn (AVAILABLE) để khách chọn đặt trước
         List<Dish> availableDishes = dishService.getAllDishes();
         model.addAttribute("availableDishes", availableDishes);
+        model.addAttribute("seatedBooking", seatedBooking);
+        model.addAttribute("isSeated", seatedBooking != null);
         model.addAttribute("pageTitle", "Đặt Bàn Trước");
 
         return "customer/booking-form";
@@ -66,6 +69,20 @@ public class BookingController {
                                  Principal principal,
                                  RedirectAttributes redirectAttributes,
                                  Model model) {
+        Booking seatedBooking = null;
+        if (principal != null) {
+            seatedBooking = bookingService.getActiveSeatedBooking(principal.getName());
+        }
+
+        if (seatedBooking != null) {
+            model.addAttribute("errorMessage", "Bạn đang ngồi tại bàn ăn (" + (seatedBooking.getAssignedTable() != null ? "Bàn " + seatedBooking.getAssignedTable().getTableNumber() : "Bàn ăn") + "). Không thể tạo thêm đơn đặt bàn mới khi chưa hoàn tất!");
+            model.addAttribute("seatedBooking", seatedBooking);
+            model.addAttribute("isSeated", true);
+            model.addAttribute("tableTypes", tableService.getAllTableTypes());
+            model.addAttribute("availableDishes", dishService.getAllDishes());
+            return "customer/booking-form";
+        }
+
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
 
@@ -101,7 +118,10 @@ public class BookingController {
     @GetMapping("/history")
     public String bookingHistory(Principal principal, Model model) {
         List<Booking> bookings = bookingService.getBookingsByAccount(principal.getName());
+        Booking seatedBooking = bookingService.getActiveSeatedBooking(principal.getName());
         model.addAttribute("bookings", bookings);
+        model.addAttribute("seatedBooking", seatedBooking);
+        model.addAttribute("isSeated", seatedBooking != null);
         model.addAttribute("pageTitle", "Lịch Sử Đặt Bàn");
         return "customer/booking-history";
     }

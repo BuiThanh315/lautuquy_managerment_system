@@ -18,17 +18,20 @@ public class OrderServiceImpl implements OrderService {
     private final BookingRepository bookingRepository;
     private final BookingPreorderRepository bookingPreorderRepository;
     private final DishRepository dishRepository;
+    private final RestaurantTableRepository restaurantTableRepository;
 
     public OrderServiceImpl(OrderRepository orderRepository,
                             OrderItemRepository orderItemRepository,
                             BookingRepository bookingRepository,
                             BookingPreorderRepository bookingPreorderRepository,
-                            DishRepository dishRepository) {
+                            DishRepository dishRepository,
+                            RestaurantTableRepository restaurantTableRepository) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.bookingRepository = bookingRepository;
         this.bookingPreorderRepository = bookingPreorderRepository;
         this.dishRepository = dishRepository;
+        this.restaurantTableRepository = restaurantTableRepository;
     }
 
     @Override
@@ -37,9 +40,27 @@ public class OrderServiceImpl implements OrderService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Đơn đặt bàn", bookingId));
 
+        RestaurantTable table = booking.getAssignedTable();
+        if (table == null) {
+            List<RestaurantTable> tables = restaurantTableRepository.findByTableTypeId(booking.getTableType().getId());
+            table = tables.stream()
+                    .filter(t -> t.getStatus() == RestaurantTable.Status.EMPTY || t.getStatus() == RestaurantTable.Status.RESERVED)
+                    .findFirst()
+                    .orElseGet(() -> restaurantTableRepository.findAll().stream()
+                            .filter(t -> t.getStatus() == RestaurantTable.Status.EMPTY || t.getStatus() == RestaurantTable.Status.RESERVED)
+                            .findFirst()
+                            .orElseGet(() -> restaurantTableRepository.findAll().stream().findFirst()
+                                    .orElseThrow(() -> new IllegalStateException("Không có bàn ăn nào trong hệ thống."))));
+
+            booking.setAssignedTable(table);
+            table.setStatus(RestaurantTable.Status.SERVING);
+            restaurantTableRepository.save(table);
+            bookingRepository.save(booking);
+        }
+
         Order order = new Order(booking, orderType != null ? orderType : Order.OrderType.DINE_IN);
         order.setAccount(booking.getAccount());
-        order.setTable(booking.getAssignedTable());
+        order.setTable(table);
         Order savedOrder = orderRepository.save(order);
 
         // Chuyển các món đặt trước (BookingPreorders) vào OrderItems nếu có
@@ -139,7 +160,16 @@ public class OrderServiceImpl implements OrderService {
                 }
                 dishRepository.save(dish);
             }
+            if (item.getOrder() != null) {
+                if (item.getOrder().getOrderItems() != null) {
+                    item.getOrder().getOrderItems().remove(item);
+                }
+                if (item.getOrder().getBooking() != null && dish != null) {
+                    bookingPreorderRepository.deleteByBookingIdAndDishId(item.getOrder().getBooking().getId(), dish.getId());
+                }
+            }
             orderItemRepository.delete(item);
+            orderItemRepository.flush();
             return null;
         } else {
             int diff = quantity - item.getQuantity();
@@ -184,6 +214,15 @@ public class OrderServiceImpl implements OrderService {
             dishRepository.save(dish);
         }
 
+        if (item.getOrder() != null) {
+            if (item.getOrder().getOrderItems() != null) {
+                item.getOrder().getOrderItems().remove(item);
+            }
+            if (item.getOrder().getBooking() != null && dish != null) {
+                bookingPreorderRepository.deleteByBookingIdAndDishId(item.getOrder().getBooking().getId(), dish.getId());
+            }
+        }
         orderItemRepository.delete(item);
+        orderItemRepository.flush();
     }
 }

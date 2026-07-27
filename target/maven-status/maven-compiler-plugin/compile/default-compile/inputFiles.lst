@@ -8,6 +8,7 @@ D:\Module4_CaseStudy\lautuquy_managerment_system\src\main\java\com\lautuquy\mana
 D:\Module4_CaseStudy\lautuquy_managerment_system\src\main\java\com\lautuquy\management\controller\AuthController.java
 D:\Module4_CaseStudy\lautuquy_managerment_system\src\main\java\com\lautuquy\management\controller\customer\BookingController.java
 D:\Module4_CaseStudy\lautuquy_managerment_system\src\main\java\com\lautuquy\management\controller\customer\MenuController.java
+D:\Module4_CaseStudy\lautuquy_managerment_system\src\main\java\com\lautuquy\management\controller\HomeController.java
 D:\Module4_CaseStudy\lautuquy_managerment_system\src\main\java\com\lautuquy\management\controller\staff\BookingManageController.java
 D:\Module4_CaseStudy\lautuquy_managerment_system\src\main\java\com\lautuquy\management\controller\staff\OrderController.java
 D:\Module4_CaseStudy\lautuquy_managerment_system\src\main\java\com\lautuquy\management\dto\request\BookingRequest.java

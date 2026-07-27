@@ -92,9 +92,20 @@ public class OrderServiceImpl implements OrderService {
         Dish dish = dishRepository.findById(dishId)
                 .orElseThrow(() -> new ResourceNotFoundException("Món ăn", dishId));
 
-        if (dish.getStatus() == Dish.Status.OUT_OF_STOCK) {
+        if (dish.getStatus() == Dish.Status.OUT_OF_STOCK || dish.getQuantity() == null || dish.getQuantity() < 1) {
             throw new IllegalArgumentException("Món '" + dish.getName() + "' hiện đang tạm hết hàng.");
         }
+
+        if (dish.getQuantity() < quantity) {
+            throw new IllegalArgumentException("Món '" + dish.getName() + "' chỉ còn lại " + dish.getQuantity() + " suất.");
+        }
+
+        // Trừ số lượng món trong kho
+        dish.setQuantity(dish.getQuantity() - quantity);
+        if (dish.getQuantity() < 1) {
+            dish.setStatus(Dish.Status.OUT_OF_STOCK);
+        }
+        dishRepository.save(dish);
 
         // Kiểm tra xem món đã có trong OrderItem chưa
         Optional<OrderItem> existingItemOpt = orderItemRepository.findByOrderIdAndDishId(orderId, dishId);
@@ -119,12 +130,37 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalStateException("Không thể sửa đơn gọi món đã hoàn thành hoặc bị hủy.");
         }
 
+        Dish dish = item.getDish();
         if (quantity <= 0) {
+            if (dish != null) {
+                dish.setQuantity(dish.getQuantity() + item.getQuantity());
+                if (dish.getQuantity() >= 1 && dish.getStatus() == Dish.Status.OUT_OF_STOCK) {
+                    dish.setStatus(Dish.Status.AVAILABLE);
+                }
+                dishRepository.save(dish);
+            }
             orderItemRepository.delete(item);
             return null;
         } else {
+            int diff = quantity - item.getQuantity();
+            if (diff > 0) {
+                if (dish.getQuantity() < diff) {
+                    throw new IllegalArgumentException("Món '" + dish.getName() + "' chỉ còn lại " + dish.getQuantity() + " suất.");
+                }
+                dish.setQuantity(dish.getQuantity() - diff);
+                if (dish.getQuantity() < 1) {
+                    dish.setStatus(Dish.Status.OUT_OF_STOCK);
+                }
+                dishRepository.save(dish);
+            } else if (diff < 0) {
+                dish.setQuantity(dish.getQuantity() + Math.abs(diff));
+                if (dish.getQuantity() >= 1 && dish.getStatus() == Dish.Status.OUT_OF_STOCK) {
+                    dish.setStatus(Dish.Status.AVAILABLE);
+                }
+                dishRepository.save(dish);
+            }
+
             item.setQuantity(quantity);
-            // GIỮ NGUYÊN actualPrice cũ (không cập nhật lại giá snapshot)
             return orderItemRepository.save(item);
         }
     }
@@ -137,6 +173,15 @@ public class OrderServiceImpl implements OrderService {
 
         if (item.getOrder().getStatus() != Order.Status.PROCESSING) {
             throw new IllegalStateException("Không thể xóa món khỏi đơn gọi đã hoàn thành hoặc bị hủy.");
+        }
+
+        Dish dish = item.getDish();
+        if (dish != null) {
+            dish.setQuantity(dish.getQuantity() + item.getQuantity());
+            if (dish.getQuantity() >= 1 && dish.getStatus() == Dish.Status.OUT_OF_STOCK) {
+                dish.setStatus(Dish.Status.AVAILABLE);
+            }
+            dishRepository.save(dish);
         }
 
         orderItemRepository.delete(item);

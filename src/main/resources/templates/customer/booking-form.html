@@ -107,11 +107,15 @@
                                         <label class="form-label" for="bookingDate">Ngày đặt</label>
                                         <input type="date" id="bookingDate" th:field="*{bookingDate}"
                                             class="form-control" required />
+                                        <span th:if="${#fields.hasErrors('bookingDate')}" th:errors="*{bookingDate}"
+                                            style="font-size:0.8rem; color:var(--clr-coral); margin-top:4px; display:block;"></span>
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label" for="bookingTime">Giờ đến</label>
                                         <input type="time" id="bookingTime" th:field="*{bookingTime}"
                                             class="form-control" required />
+                                        <span th:if="${#fields.hasErrors('bookingTime')}" th:errors="*{bookingTime}"
+                                            style="font-size:0.8rem; color:var(--clr-coral); margin-top:4px; display:block;"></span>
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -134,19 +138,30 @@
                                 </p>
                                 <div style="max-height:360px; overflow-y:auto; padding-right:8px;">
                                     <div th:each="dish, iter : ${availableDishes}"
-                                        style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--clr-border-light);">
+                                        style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--clr-border-light);"
+                                        th:styleappend="${dish.status.name() == 'OUT_OF_STOCK' || dish.quantity < 1 ? 'opacity:0.6;' : ''}">
                                         <div>
-                                            <div th:text="${dish.name}"
-                                                style="font-weight:600; color:var(--clr-text-primary);"></div>
-                                            <div th:text="${#numbers.formatDecimal(dish.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"
-                                                style="font-size:0.8rem; color:var(--clr-gold);"></div>
+                                            <div style="display:flex; align-items:center; gap:8px;">
+                                                <span th:text="${dish.name}" style="font-weight:600; color:var(--clr-text-primary);"></span>
+                                                <span th:if="${dish.status.name() == 'OUT_OF_STOCK' || dish.quantity < 1}" class="badge badge-cancelled" style="font-size:0.7rem; padding:2px 6px;">Tạm hết</span>
+                                            </div>
+                                            <div style="display:flex; align-items:center; gap:12px; margin-top:2px;">
+                                                <span th:text="${#numbers.formatDecimal(dish.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"
+                                                    style="font-size:0.8rem; color:var(--clr-gold);"></span>
+                                                <span th:if="${dish.status.name() == 'AVAILABLE' && dish.quantity >= 1}"
+                                                    th:text="'(Còn ' + ${dish.quantity} + ' suất)'"
+                                                    style="font-size:0.75rem; color:var(--clr-text-muted);"></span>
+                                            </div>
                                         </div>
                                         <div style="display:flex; align-items:center; gap:8px;">
                                             <input type="hidden" th:name="'preorders[' + ${iter.index} + '].dishId'"
                                                 th:value="${dish.id}" />
                                             <input type="number" th:name="'preorders[' + ${iter.index} + '].quantity'"
-                                                class="form-control" style="width:70px; text-align:center; padding:6px;"
-                                                value="0" min="0" max="20" />
+                                                class="form-control preorder-qty-input" style="width:70px; text-align:center; padding:6px;"
+                                                value="0" min="0" th:max="${dish.status.name() == 'OUT_OF_STOCK' || dish.quantity < 1 ? 0 : dish.quantity}"
+                                                th:data-dish-name="${dish.name}"
+                                                th:data-max-qty="${dish.quantity}"
+                                                th:disabled="${dish.status.name() == 'OUT_OF_STOCK' || dish.quantity < 1}" />
                                         </div>
                                     </div>
                                 </div>
@@ -164,7 +179,113 @@
         </div>
     </div>
 
+    <!-- Toast Container cho thông báo cảnh báo -->
+    <div id="toast-container" style="position:fixed; top:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:10px; pointer-events:none;"></div>
+
     <script th:src="@{/js/main.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const dateInput = document.getElementById('bookingDate');
+            const timeInput = document.getElementById('bookingTime');
+
+            // --- Toast Notification Helper ---
+            function showToast(message, type = 'warning') {
+                const container = document.getElementById('toast-container');
+                if (!container) return;
+
+                const toast = document.createElement('div');
+                toast.className = `alert alert-${type === 'warning' ? 'danger' : 'success'}`;
+                toast.style.cssText = 'pointer-events:auto; min-width:300px; max-width:400px; box-shadow:0 8px 24px rgba(0,0,0,0.3); animation: slideIn 0.3s ease; margin:0; font-size:0.9rem;';
+                toast.innerHTML = `<i class="bi ${type === 'warning' ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill'}"></i> <span>${message}</span>`;
+
+                container.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(-10px)';
+                    toast.style.transition = 'all 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3500);
+            }
+
+            // --- 3. Kiểm tra giới hạn Số lượng món ăn chọn trước ---
+            document.querySelectorAll('.preorder-qty-input').forEach(input => {
+                function validatePreorderQty() {
+                    const maxQty = parseInt(input.getAttribute('data-max-qty') || '0', 10);
+                    const dishName = input.getAttribute('data-dish-name') || 'Món ăn';
+                    let currentVal = parseInt(input.value || '0', 10);
+
+                    if (isNaN(currentVal) || currentVal < 0) {
+                        input.value = 0;
+                        return;
+                    }
+
+                    if (currentVal > maxQty) {
+                        showToast(`Vượt quá số lượng hiện có! (${dishName} chỉ còn tối đa ${maxQty} suất)`, 'warning');
+                        input.value = maxQty;
+                    }
+                }
+
+                input.addEventListener('input', validatePreorderQty);
+                input.addEventListener('change', validatePreorderQty);
+            });
+
+            if (!dateInput || !timeInput) return;
+
+            function getTodayStr() {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            function getNowTimeStr() {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                return `${hours}:${minutes}`;
+            }
+
+            // 1. Khóa các ngày trong quá khứ
+            const todayStr = getTodayStr();
+            dateInput.min = todayStr;
+
+            if (!dateInput.value) {
+                dateInput.value = todayStr;
+            }
+
+            // 2. Cập nhật min time theo ngày được chọn
+            function syncTimeConstraints() {
+                const selectedDate = dateInput.value;
+                const currentToday = getTodayStr();
+                const currentTime = getNowTimeStr();
+
+                if (selectedDate === currentToday) {
+                    timeInput.min = currentTime;
+                    if (timeInput.value && timeInput.value < currentTime) {
+                        timeInput.value = currentTime;
+                    }
+                } else if (selectedDate < currentToday) {
+                    dateInput.value = currentToday;
+                    timeInput.min = currentTime;
+                    if (timeInput.value && timeInput.value < currentTime) {
+                        timeInput.value = currentTime;
+                    }
+                } else {
+                    timeInput.removeAttribute('min');
+                }
+            }
+
+            dateInput.addEventListener('change', syncTimeConstraints);
+            dateInput.addEventListener('input', syncTimeConstraints);
+            timeInput.addEventListener('change', syncTimeConstraints);
+            timeInput.addEventListener('input', syncTimeConstraints);
+
+            // Chạy kiểm tra khởi tạo
+            syncTimeConstraints();
+        });
+    </script>
 </body>
 
 </html>

@@ -43,6 +43,7 @@ CREATE TABLE dishes (
     image_url    VARCHAR(255),
     price        DECIMAL(12,0) NOT NULL,
     description  VARCHAR(255),
+    quantity     INT NOT NULL DEFAULT 50,
     status       ENUM('AVAILABLE','OUT_OF_STOCK') NOT NULL DEFAULT 'AVAILABLE',
     CONSTRAINT fk_dishes_category FOREIGN KEY (category_id) REFERENCES categories(id)
 ) ENGINE=InnoDB;
@@ -170,18 +171,18 @@ INSERT INTO categories (id, name, description) VALUES
 -- ---------------------------------------------------------
 -- dishes: các món ăn (1 món OUT_OF_STOCK để test trạng thái hết hàng)
 -- ---------------------------------------------------------
-INSERT INTO dishes (id, category_id, name, image_url, price, description, status) VALUES
-(1, 1, 'Nước lẩu Thái chua cay',   '/images/dishes/lau-thai.jpg',    89000,  'Vị chua cay đặc trưng Thái Lan', 'AVAILABLE'),
-(2, 1, 'Nước lẩu Kim Chi',         '/images/dishes/lau-kimchi.jpg',  99000,  'Vị cay nồng kiểu Hàn Quốc',      'AVAILABLE'),
-(3, 1, 'Nước lẩu Nấm chay',        '/images/dishes/lau-nam.jpg',     79000,  'Thanh đạm, phù hợp ăn chay',     'AVAILABLE'),
-(4, 2, 'Bò Mỹ ba chỉ',             '/images/dishes/bo-my.jpg',       129000, 'Thịt bò Mỹ thái lát mỏng',       'AVAILABLE'),
-(5, 2, 'Bò Wagyu',                 '/images/dishes/bo-wagyu.jpg',    259000, 'Bò Wagyu vân mỡ cao cấp',        'OUT_OF_STOCK'),
-(6, 3, 'Tôm sú tươi',              '/images/dishes/tom-su.jpg',      149000, 'Tôm sú size lớn',                'AVAILABLE'),
-(7, 3, 'Mực ống',                  '/images/dishes/muc-ong.jpg',     109000, 'Mực tươi làm sạch',              'AVAILABLE'),
-(8, 4, 'Nấm kim châm',             '/images/dishes/nam-kim-cham.jpg',39000,  'Nấm kim châm tươi',              'AVAILABLE'),
-(9, 4, 'Rau muống',                '/images/dishes/rau-muong.jpg',   25000,  'Rau muống nhặt sẵn',             'AVAILABLE'),
-(10, 5, 'Coca-Cola lon',           '/images/dishes/coca.jpg',        15000,  'Nước ngọt có ga',                'AVAILABLE'),
-(11, 5, 'Bia Tiger',               '/images/dishes/tiger.jpg',       25000,  'Bia lon 330ml',                  'AVAILABLE');
+INSERT INTO dishes (id, category_id, name, image_url, price, description, quantity, status) VALUES
+(1, 1, 'Nước lẩu Thái chua cay',   '/images/dishes/lau-thai.jpg',    89000,  'Vị chua cay đặc trưng Thái Lan', 50, 'AVAILABLE'),
+(2, 1, 'Nước lẩu Kim Chi',         '/images/dishes/lau-kimchi.jpg',  99000,  'Vị cay nồng kiểu Hàn Quốc',      50, 'AVAILABLE'),
+(3, 1, 'Nước lẩu Nấm chay',        '/images/dishes/lau-nam.jpg',     79000,  'Thanh đạm, phù hợp ăn chay',     50, 'AVAILABLE'),
+(4, 2, 'Bò Mỹ ba chỉ',             '/images/dishes/bo-my.jpg',       129000, 'Thịt bò Mỹ thái lát mỏng',       50, 'AVAILABLE'),
+(5, 2, 'Bò Wagyu',                 '/images/dishes/bo-wagyu.jpg',    259000, 'Bò Wagyu vân mỡ cao cấp',        0,  'OUT_OF_STOCK'),
+(6, 3, 'Tôm sú tươi',              '/images/dishes/tom-su.jpg',      149000, 'Tôm sú size lớn',                50, 'AVAILABLE'),
+(7, 3, 'Mực ống',                  '/images/dishes/muc-ong.jpg',     109000, 'Mực tươi làm sạch',              50, 'AVAILABLE'),
+(8, 4, 'Nấm kim châm',             '/images/dishes/nam-kim-cham.jpg',39000,  'Nấm kim châm tươi',              50, 'AVAILABLE'),
+(9, 4, 'Rau muống',                '/images/dishes/rau-muong.jpg',   25000,  'Rau muống nhặt sẵn',             50, 'AVAILABLE'),
+(10, 5, 'Coca-Cola lon',           '/images/dishes/coca.jpg',        15000,  'Nước ngọt có ga',                50, 'AVAILABLE'),
+(11, 5, 'Bia Tiger',               '/images/dishes/tiger.jpg',       25000,  'Bia lon 330ml',                  50, 'AVAILABLE');
 
 -- ---------------------------------------------------------
 -- table_types: REGULAR & VIP

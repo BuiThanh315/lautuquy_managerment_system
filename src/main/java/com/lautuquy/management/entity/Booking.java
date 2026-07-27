@@ -57,9 +57,18 @@ public class Booking {
     public Booking() {}
 
     @PrePersist
+    @PreUpdate
     protected void onCreate() {
         if (this.createdAt == null) {
             this.createdAt = LocalDateTime.now();
+        }
+        if (this.bookingDate != null && this.bookingDate.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Ngày đặt bàn không thể ở trong quá khứ.");
+        }
+        if (this.bookingDate != null && this.bookingDate.isEqual(LocalDate.now())) {
+            if (this.bookingTime != null && this.bookingTime.isBefore(LocalTime.now())) {
+                throw new IllegalArgumentException("Giờ đặt bàn không thể trước thời gian hiện tại đối với ngày hôm nay.");
+            }
         }
     }
 

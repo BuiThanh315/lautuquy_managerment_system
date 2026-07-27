@@ -88,12 +88,11 @@
                 <!-- Danh sách Món ăn Cards -->
                 <div class="grid-4 mb-xl">
                     <div th:each="dish : ${dishPage.content}" class="dish-card"
-                        th:classappend="${dish.status.name() == 'OUT_OF_STOCK' ? 'out-of-stock' : ''}">
+                        th:classappend="${dish.status.name() == 'OUT_OF_STOCK' || dish.quantity < 1 ? 'out-of-stock' : ''}">
                         <div class="dish-card-image">
                             <img th:src="${dish.imageUrl}" th:alt="${dish.name}"
                                 onerror="this.src='https://placehold.co/400x300/760031/FEEC41?text=L%E1%BA%A3u+T%E1%BB%B9+Qu%C3%BD'" />
-                            <span th:if="${dish.status.name() == 'OUT_OF_STOCK'}" class="badge-out-of-stock">Tạm hết
-                                hàng</span>
+                            <span th:if="${dish.status.name() == 'OUT_OF_STOCK' || dish.quantity < 1}" class="badge-out-of-stock">Tạm hết</span>
                         </div>
                         <div class="dish-card-body">
                             <div class="dish-card-category" th:text="${dish.category.name}"></div>
@@ -105,8 +104,8 @@
                                     th:text="${#numbers.formatDecimal(dish.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">
                                 </div>
                                 <a th:href="@{/customer/booking}" class="btn btn-sm"
-                                    th:classappend="${dish.status.name() == 'OUT_OF_STOCK' ? 'btn-secondary disabled' : 'btn-primary'}"
-                                    th:attr="aria-disabled=${dish.status.name() == 'OUT_OF_STOCK'}">
+                                    th:classappend="${dish.status.name() == 'OUT_OF_STOCK' || dish.quantity < 1 ? 'btn-secondary disabled' : 'btn-primary'}"
+                                    th:attr="aria-disabled=${dish.status.name() == 'OUT_OF_STOCK' || dish.quantity < 1}">
                                     <i class="bi bi-calendar-plus"></i> Đặt trước
                                 </a>
                             </div>

@@ -121,7 +121,8 @@
                                     <select name="dishId" id="dishId" class="form-select" required>
                                         <option value="">-- Chọn món --</option>
                                         <option th:each="d : ${availableDishes}" th:value="${d.id}"
-                                            th:text="${d.name} + ' (' + ${#numbers.formatDecimal(d.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ)'">
+                                            th:disabled="${d.status.name() == 'OUT_OF_STOCK' || d.quantity < 1}"
+                                            th:text="${d.name} + ' (' + ${#numbers.formatDecimal(d.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ)' + (${d.status.name() == 'OUT_OF_STOCK' || d.quantity < 1} ? ' — [Tạm hết]' : ' — [Còn ' + ${d.quantity} + ']')">
                                         </option>
                                     </select>
                                 </div>

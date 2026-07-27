@@ -9,6 +9,8 @@ import com.lautuquy.management.service.BookingService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -38,6 +40,24 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public Booking createBooking(String username, BookingRequest request) {
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+
+        if (request.getBookingDate() == null) {
+            throw new IllegalArgumentException("Ngày đặt bàn không được để trống.");
+        }
+        if (request.getBookingDate().isBefore(today)) {
+            throw new IllegalArgumentException("Ngày đặt bàn không thể ở trong quá khứ.");
+        }
+        if (request.getBookingDate().isEqual(today)) {
+            if (request.getBookingTime() == null) {
+                throw new IllegalArgumentException("Giờ đặt bàn không được để trống.");
+            }
+            if (request.getBookingTime().isBefore(now)) {
+                throw new IllegalArgumentException("Giờ đặt bàn không thể trước thời gian hiện tại đối với ngày hôm nay.");
+            }
+        }
+
         Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Tài khoản", 0L));
 
@@ -63,10 +83,20 @@ public class BookingServiceImpl implements BookingService {
                     Dish dish = dishRepository.findById(preorderReq.getDishId())
                             .orElseThrow(() -> new ResourceNotFoundException("Món ăn", preorderReq.getDishId()));
 
-                    // Kiểm tra nếu món bị hết hàng
-                    if (dish.getStatus() == Dish.Status.OUT_OF_STOCK) {
+                    // Kiểm tra nếu món bị hết hàng hoặc số lượng tồn kho không đủ
+                    if (dish.getStatus() == Dish.Status.OUT_OF_STOCK || dish.getQuantity() == null || dish.getQuantity() < 1) {
                         throw new IllegalArgumentException("Món '" + dish.getName() + "' hiện tại đang tạm hết hàng.");
                     }
+                    if (dish.getQuantity() < preorderReq.getQuantity()) {
+                        throw new IllegalArgumentException("Món '" + dish.getName() + "' chỉ còn lại " + dish.getQuantity() + " suất.");
+                    }
+
+                    // Trừ số lượng món ăn trong kho
+                    dish.setQuantity(dish.getQuantity() - preorderReq.getQuantity());
+                    if (dish.getQuantity() < 1) {
+                        dish.setStatus(Dish.Status.OUT_OF_STOCK);
+                    }
+                    dishRepository.save(dish);
 
                     BookingPreorder preorder = new BookingPreorder(savedBooking, dish, preorderReq.getQuantity());
                     bookingPreorderRepository.save(preorder);

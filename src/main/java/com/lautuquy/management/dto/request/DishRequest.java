@@ -24,8 +24,11 @@ public class DishRequest {
     @Size(max = 255, message = "Mô tả tối đa 255 ký tự")
     private String description;
 
-    @NotNull(message = "Trạng thái không được để trống")
-    private Dish.Status status = Dish.Status.AVAILABLE;
+    @NotNull(message = "Số lượng món không được để trống")
+    @Min(value = 0, message = "Số lượng món phải lớn hơn hoặc bằng 0")
+    private Integer quantity = 50;
+
+    private Dish.Status status;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -44,6 +47,9 @@ public class DishRequest {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
 
     public Dish.Status getStatus() { return status; }
     public void setStatus(Dish.Status status) { this.status = status; }

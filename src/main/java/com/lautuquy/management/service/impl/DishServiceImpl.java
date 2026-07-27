@@ -4,8 +4,10 @@ import com.lautuquy.management.dto.request.DishRequest;
 import com.lautuquy.management.entity.Category;
 import com.lautuquy.management.entity.Dish;
 import com.lautuquy.management.exception.ResourceNotFoundException;
+import com.lautuquy.management.repository.BookingPreorderRepository;
 import com.lautuquy.management.repository.CategoryRepository;
 import com.lautuquy.management.repository.DishRepository;
+import com.lautuquy.management.repository.OrderItemRepository;
 import com.lautuquy.management.service.DishService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,10 +21,17 @@ public class DishServiceImpl implements DishService {
 
     private final DishRepository dishRepository;
     private final CategoryRepository categoryRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final BookingPreorderRepository bookingPreorderRepository;
 
-    public DishServiceImpl(DishRepository dishRepository, CategoryRepository categoryRepository) {
+    public DishServiceImpl(DishRepository dishRepository,
+                           CategoryRepository categoryRepository,
+                           OrderItemRepository orderItemRepository,
+                           BookingPreorderRepository bookingPreorderRepository) {
         this.dishRepository = dishRepository;
         this.categoryRepository = categoryRepository;
+        this.orderItemRepository = orderItemRepository;
+        this.bookingPreorderRepository = bookingPreorderRepository;
     }
 
     @Override
@@ -64,6 +73,7 @@ public class DishServiceImpl implements DishService {
         dish.setImageUrl(request.getImageUrl());
         dish.setPrice(request.getPrice());
         dish.setDescription(request.getDescription());
+        dish.setQuantity(request.getQuantity() != null ? request.getQuantity() : 0);
         dish.setStatus(request.getStatus() != null ? request.getStatus() : Dish.Status.AVAILABLE);
 
         return dishRepository.save(dish);
@@ -83,6 +93,9 @@ public class DishServiceImpl implements DishService {
         }
         dish.setPrice(request.getPrice());
         dish.setDescription(request.getDescription());
+        if (request.getQuantity() != null) {
+            dish.setQuantity(request.getQuantity());
+        }
         if (request.getStatus() != null) {
             dish.setStatus(request.getStatus());
         }
@@ -94,13 +107,30 @@ public class DishServiceImpl implements DishService {
     @Transactional
     public void deleteDish(Long id) {
         Dish dish = getDishById(id);
-        dishRepository.delete(dish);
+        boolean hasOrderItems = orderItemRepository.existsByDishId(id);
+        boolean hasPreorders = bookingPreorderRepository.existsByDishId(id);
+
+        if (hasOrderItems || hasPreorders) {
+            // Món đã có trong lịch sử -> Chuyển số lượng về 0 và trạng thái OUT_OF_STOCK
+            dish.setQuantity(0);
+            dish.setStatus(Dish.Status.OUT_OF_STOCK);
+            dishRepository.save(dish);
+            throw new IllegalArgumentException("Món '" + dish.getName() + "' đã từng có trong lịch sử đơn hàng/đặt bàn nên không thể xóa vĩnh viễn. Hệ thống đã tự động chuyển số lượng về 0 (Tạm hết hàng).");
+        } else {
+            // Chưa từng được gọi -> xóa vĩnh viễn
+            dishRepository.delete(dish);
+        }
     }
 
     @Override
     @Transactional
     public void updateStatus(Long id, Dish.Status status) {
         Dish dish = getDishById(id);
+        if (status == Dish.Status.AVAILABLE && (dish.getQuantity() == null || dish.getQuantity() < 1)) {
+            dish.setQuantity(10);
+        } else if (status == Dish.Status.OUT_OF_STOCK) {
+            dish.setQuantity(0);
+        }
         dish.setStatus(status);
         dishRepository.save(dish);
     }

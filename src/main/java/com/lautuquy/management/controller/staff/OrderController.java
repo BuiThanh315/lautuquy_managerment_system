@@ -52,9 +52,7 @@ public class OrderController {
         Booking booking = bookingService.getBookingById(bookingId);
         Order order = orderService.getOrCreateActiveOrderForBooking(bookingId);
 
-        List<Dish> availableDishes = dishService.getAllDishes().stream()
-                .filter(d -> d.getStatus() == Dish.Status.AVAILABLE)
-                .toList();
+        List<Dish> availableDishes = dishService.getAllDishes();
 
         // Tính tổng tiền hiện tại của Order từ actual_price * quantity
         BigDecimal totalAmount = order.getOrderItems().stream()

@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface BookingPreorderRepository extends JpaRepository<BookingPreorder, BookingPreorderId> {
     List<BookingPreorder> findByBookingId(Long bookingId);
+    boolean existsByDishId(Long dishId);
 }

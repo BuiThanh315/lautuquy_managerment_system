@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Controller
@@ -51,9 +53,7 @@ public class BookingController {
         model.addAttribute("bookingRequest", bookingRequest);
         model.addAttribute("tableTypes", tableService.getAllTableTypes());
         // Lấy danh sách món ăn đang có sẵn (AVAILABLE) để khách chọn đặt trước
-        List<Dish> availableDishes = dishService.getAllDishes().stream()
-                .filter(d -> d.getStatus() == Dish.Status.AVAILABLE)
-                .toList();
+        List<Dish> availableDishes = dishService.getAllDishes();
         model.addAttribute("availableDishes", availableDishes);
         model.addAttribute("pageTitle", "Đặt Bàn Trước");
 
@@ -66,11 +66,21 @@ public class BookingController {
                                  Principal principal,
                                  RedirectAttributes redirectAttributes,
                                  Model model) {
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+
+        if (request.getBookingDate() != null && request.getBookingDate().isBefore(today)) {
+            bindingResult.rejectValue("bookingDate", "error.bookingDate", "Ngày đặt bàn không thể ở trong quá khứ.");
+        }
+        if (request.getBookingDate() != null && request.getBookingDate().isEqual(today)) {
+            if (request.getBookingTime() != null && request.getBookingTime().isBefore(now)) {
+                bindingResult.rejectValue("bookingTime", "error.bookingTime", "Giờ đặt bàn không thể trước thời gian hiện tại đối với ngày hôm nay.");
+            }
+        }
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("tableTypes", tableService.getAllTableTypes());
-            List<Dish> availableDishes = dishService.getAllDishes().stream()
-                    .filter(d -> d.getStatus() == Dish.Status.AVAILABLE)
-                    .toList();
+            List<Dish> availableDishes = dishService.getAllDishes();
             model.addAttribute("availableDishes", availableDishes);
             return "customer/booking-form";
         }
@@ -82,9 +92,7 @@ public class BookingController {
         } catch (Exception e) {
             model.addAttribute("errorMessage", "Không thể tạo đơn đặt bàn: " + e.getMessage());
             model.addAttribute("tableTypes", tableService.getAllTableTypes());
-            List<Dish> availableDishes = dishService.getAllDishes().stream()
-                    .filter(d -> d.getStatus() == Dish.Status.AVAILABLE)
-                    .toList();
+            List<Dish> availableDishes = dishService.getAllDishes();
             model.addAttribute("availableDishes", availableDishes);
             return "customer/booking-form";
         }

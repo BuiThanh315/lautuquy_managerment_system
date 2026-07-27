@@ -30,6 +30,9 @@ public class Dish {
     @Column(length = 255)
     private String description;
 
+    @Column(nullable = false)
+    private Integer quantity = 50;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 15)
     private Status status = Status.AVAILABLE;
@@ -40,14 +43,26 @@ public class Dish {
 
     public Dish() {}
 
-    public Dish(Long id, Category category, String name, String imageUrl, BigDecimal price, String description, Status status) {
+    public Dish(Long id, Category category, String name, String imageUrl, BigDecimal price, String description, Integer quantity, Status status) {
         this.id = id;
         this.category = category;
         this.name = name;
         this.imageUrl = imageUrl;
         this.price = price;
         this.description = description;
-        this.status = status;
+        this.quantity = (quantity != null) ? quantity : 0;
+        this.status = (this.quantity < 1) ? Status.OUT_OF_STOCK : (status != null ? status : Status.AVAILABLE);
+    }
+
+    @PrePersist
+    @PreUpdate
+    protected void checkQuantityAndStatus() {
+        if (this.quantity == null || this.quantity < 1) {
+            this.quantity = 0;
+            this.status = Status.OUT_OF_STOCK;
+        } else {
+            this.status = Status.AVAILABLE;
+        }
     }
 
     public Long getId() { return id; }
@@ -67,6 +82,16 @@ public class Dish {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer quantity) {
+        this.quantity = (quantity != null) ? quantity : 0;
+        if (this.quantity < 1) {
+            this.status = Status.OUT_OF_STOCK;
+        } else {
+            this.status = Status.AVAILABLE;
+        }
+    }
 
     public Status getStatus() { return status; }
     public void setStatus(Status status) { this.status = status; }

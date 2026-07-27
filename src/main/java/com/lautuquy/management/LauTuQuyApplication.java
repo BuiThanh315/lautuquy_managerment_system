@@ -59,11 +59,11 @@ public class LauTuQuyApplication {
                 Category c2 = categoryRepository.save(new Category(null, "Đồ nhúng bò", "Thịt bò tươi nhúng lẩu"));
                 Category c3 = categoryRepository.save(new Category(null, "Rau nấm", "Rau xanh và nấm tươi"));
 
-                dishRepository.save(new Dish(null, c1, "Lẩu Thái Chua Cay", "/images/dishes/lau-thai.jpg", new BigDecimal("189000"), "Nước lẩu Thái chua cay chuẩn vị", Dish.Status.AVAILABLE));
-                dishRepository.save(new Dish(null, c1, "Lẩu Nấm Thượng Hạng", "/images/dishes/lau-nam.jpg", new BigDecimal("169000"), "Nước lẩu nấm thanh ngọt dưỡng sinh", Dish.Status.AVAILABLE));
-                dishRepository.save(new Dish(null, c2, "Ba Chỉ Bỏ Mỹ", "/images/dishes/bo-my.jpg", new BigDecimal("129000"), "Ba chỉ bò Mỹ nhúng lẩu mềm ngon", Dish.Status.AVAILABLE));
-                dishRepository.save(new Dish(null, c2, "Bắp Bỏ Hoa", "/images/dishes/bap-bo.jpg", new BigDecimal("149000"), "Bắp bò giòn ngon ngọt thịt", Dish.Status.AVAILABLE));
-                dishRepository.save(new Dish(null, c3, "Nấm Kim Chi", "/images/dishes/nam-kim-chi.jpg", new BigDecimal("39000"), "Nấm tươi ngon", Dish.Status.AVAILABLE));
+                dishRepository.save(new Dish(null, c1, "Lẩu Thái Chua Cay", "/images/dishes/lau-thai.jpg", new BigDecimal("189000"), "Nước lẩu Thái chua cay chuẩn vị", 50, Dish.Status.AVAILABLE));
+                dishRepository.save(new Dish(null, c1, "Lẩu Nấm Thượng Hạng", "/images/dishes/lau-nam.jpg", new BigDecimal("169000"), "Nước lẩu nấm thanh ngọt dưỡng sinh", 0, Dish.Status.OUT_OF_STOCK));
+                dishRepository.save(new Dish(null, c2, "Ba Chỉ Bỏ Mỹ", "/images/dishes/bo-my.jpg", new BigDecimal("129000"), "Ba chỉ bò Mỹ nhúng lẩu mềm ngon", 50, Dish.Status.AVAILABLE));
+                dishRepository.save(new Dish(null, c2, "Bắp Bỏ Hoa", "/images/dishes/bap-bo.jpg", new BigDecimal("149000"), "Bắp bò giòn ngon ngọt thịt", 50, Dish.Status.AVAILABLE));
+                dishRepository.save(new Dish(null, c3, "Nấm Kim Chi", "/images/dishes/nam-kim-chi.jpg", new BigDecimal("39000"), "Nấm tươi ngon", 50, Dish.Status.AVAILABLE));
             }
 
             // 4. Seed Bookings mẫu nếu chưa có

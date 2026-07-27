@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: lautuquy-management
+    runtime: docker
+    region: singapore
+    plan: free
+    envVars:
+      - key: DB_URL
+        value: jdbc:mysql://sql.freedb.tech:3306/freedb_Ia7aTYGf?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+      - key: DB_USERNAME
+        value: u_7mUtpI
+      - key: DB_PASSWORD
+        value: XX23g824ijUM
+      - key: PORT
+        value: 8080
+    healthCheckPath: /auth/login

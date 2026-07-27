@@ -1,8 +1,10 @@
 package com.lautuquy.management.controller.staff;
 
 import com.lautuquy.management.entity.Booking;
+import com.lautuquy.management.entity.Invoice;
 import com.lautuquy.management.entity.RestaurantTable;
 import com.lautuquy.management.service.BookingService;
+import com.lautuquy.management.service.InvoiceService;
 import com.lautuquy.management.service.TableService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,10 +19,14 @@ public class BookingManageController {
 
     private final BookingService bookingService;
     private final TableService tableService;
+    private final InvoiceService invoiceService;
 
-    public BookingManageController(BookingService bookingService, TableService tableService) {
+    public BookingManageController(BookingService bookingService,
+                                  TableService tableService,
+                                  InvoiceService invoiceService) {
         this.bookingService = bookingService;
         this.tableService = tableService;
+        this.invoiceService = invoiceService;
     }
 
     @GetMapping
@@ -41,7 +47,17 @@ public class BookingManageController {
                 .filter(t -> t.getStatus() == RestaurantTable.Status.EMPTY || t.getStatus() == RestaurantTable.Status.RESERVED)
                 .toList();
 
+        // Lấy danh sách hóa đơn tương ứng với các đơn đặt bàn (để kiểm tra xem khách đã thanh toán chưa)
+        java.util.Map<Long, Invoice> invoiceMap = new java.util.HashMap<>();
+        for (Booking b : filteredBookings) {
+            Invoice inv = invoiceService.getInvoiceByBookingId(b.getId());
+            if (inv != null) {
+                invoiceMap.put(b.getId(), inv);
+            }
+        }
+
         model.addAttribute("bookings", filteredBookings);
+        model.addAttribute("invoiceMap", invoiceMap);
         model.addAttribute("selectedStatus", statusFilter != null ? statusFilter : "ALL");
         model.addAttribute("emptyTables", emptyTables);
         model.addAttribute("pageTitle", "Quản Lý Đặt Bàn — Staff");
@@ -82,6 +98,18 @@ public class BookingManageController {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi xếp bàn: " + e.getMessage());
         }
         return "redirect:/staff/bookings";
+    }
+
+    @PostMapping("/{id}/confirm-payment")
+    public String confirmPayment(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            Invoice invoice = invoiceService.confirmPaymentByStaff(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Xác nhận thanh toán thành công cho đơn đặt bàn #" + id + "! Hóa đơn #" + invoice.getId() + " đã hoàn tất.");
+            return "redirect:/staff/invoices/" + invoice.getId() + "/print";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể xác nhận thanh toán: " + e.getMessage());
+            return "redirect:/staff/bookings";
+        }
     }
 
     @PostMapping("/{id}/cancel")

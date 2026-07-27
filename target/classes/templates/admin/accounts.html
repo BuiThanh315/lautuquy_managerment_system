@@ -107,31 +107,31 @@
                 </div>
             </div>
 
-            <!-- Stats Row -->
-            <div class="grid-4 mb-xl">
-                <div class="stat-card">
-                    <div class="stat-icon">👑</div>
-                    <div class="stat-value"
+            <!-- Stats Row (Forced 4 columns on 1 row) -->
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px;">
+                <div class="stat-card" style="padding: 14px 16px;">
+                    <div class="stat-icon" style="font-size: 1.4rem;">👑</div>
+                    <div class="stat-value" style="font-size: 1.5rem;"
                          th:text="${accounts.?[role.name() == 'ADMIN'].size()}">0</div>
-                    <div class="stat-label">Admin</div>
+                    <div class="stat-label" style="font-size: 0.75rem;">Admin</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">👷</div>
-                    <div class="stat-value"
+                <div class="stat-card" style="padding: 14px 16px;">
+                    <div class="stat-icon" style="font-size: 1.4rem;">👷</div>
+                    <div class="stat-value" style="font-size: 1.5rem;"
                          th:text="${accounts.?[role.name() == 'STAFF'].size()}">0</div>
-                    <div class="stat-label">Nhân viên</div>
+                    <div class="stat-label" style="font-size: 0.75rem;">Nhân viên</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🧑‍💼</div>
-                    <div class="stat-value"
+                <div class="stat-card" style="padding: 14px 16px;">
+                    <div class="stat-icon" style="font-size: 1.4rem;">🧑‍💼</div>
+                    <div class="stat-value" style="font-size: 1.5rem;"
                          th:text="${accounts.?[role.name() == 'CUSTOMER'].size()}">0</div>
-                    <div class="stat-label">Khách hàng</div>
+                    <div class="stat-label" style="font-size: 0.75rem;">Khách hàng</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🔒</div>
-                    <div class="stat-value"
+                <div class="stat-card" style="padding: 14px 16px;">
+                    <div class="stat-icon" style="font-size: 1.4rem;">🔒</div>
+                    <div class="stat-value" style="font-size: 1.5rem;"
                          th:text="${accounts.?[status.name() == 'LOCKED'].size()}">0</div>
-                    <div class="stat-label">Bị khóa</div>
+                    <div class="stat-label" style="font-size: 0.75rem;">Bị khóa</div>
                 </div>
             </div>
 

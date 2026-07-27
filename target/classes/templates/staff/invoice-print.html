@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${pageTitle}">Hóa Đơn Bán Hàng — Lẩu Tứ Quý</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #fff !important; color: #000 !important; }
+            .invoice-card { border: none !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important; }
+        }
+    </style>
+</head>
+
+<body style="background:var(--clr-surface-1); display:flex; justify-content:center; padding:40px 16px;">
+
+    <div style="width:100%; max-width:650px;">
+
+        <!-- Top Actions -->
+        <div class="no-print" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <a th:href="@{/staff/bookings}" class="btn btn-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Quay lại danh sách
+            </a>
+            <button type="button" class="btn btn-primary" onclick="window.print()">
+                <i class="bi bi-printer-fill"></i> In Hóa Đơn
+            </button>
+        </div>
+
+        <!-- Printable Invoice Sheet -->
+        <div class="card invoice-card" style="padding:40px; background:#fff; color:#1e293b; border-radius:var(--radius-lg);">
+
+            <!-- Header -->
+            <div style="text-align:center; padding-bottom:20px; border-bottom:2px dashed #cbd5e1; margin-bottom:24px;">
+                <div style="font-size:1.8rem; font-weight:800; color:#b91c1c; text-uppercase; tracking-wide;">NHÀ HÀNG LẨU TỨ QUÝ</div>
+                <div style="font-size:0.85rem; color:#64748b; margin-top:4px;">ĐC: Tầng 3, TTTM Royal City, Thanh Xuân, Hà Nội</div>
+                <div style="font-size:0.85rem; color:#64748b;">Hotline: 1900 6868 | Website: www.lautuquy.vn</div>
+                <div style="font-size:1.4rem; font-weight:700; margin-top:16px; color:#0f172a;">HÓA ĐƠN THANH TOÁN</div>
+                <div style="font-size:0.85rem; color:#64748b;" th:text="'Số HĐ: #' + ${invoice.id} + ' — Ngày: ' + ${#temporals.format(invoice.createdAt ?: #temporals.createNow(), 'dd/MM/yyyy HH:mm')}"></div>
+            </div>
+
+            <!-- Meta info -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:0.9rem; margin-bottom:24px;">
+                <div>
+                    <div><strong>Khách hàng:</strong> <span th:text="${invoice.order.account != null ? invoice.order.account.fullName : 'Khách vãng lai'}"></span></div>
+                    <div><strong>SĐT:</strong> <span th:text="${invoice.order.account != null ? invoice.order.account.phone : '—'}"></span></div>
+                </div>
+                <div style="text-align:right;">
+                    <div><strong>Vị trí bàn:</strong> <span th:text="${invoice.order.table != null ? 'Bàn ' + invoice.order.table.tableNumber : '—'}"></span></div>
+                    <div><strong>Hình thức:</strong> <span th:text="${invoice.paymentMethod}"></span></div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <table style="width:100%; border-collapse:collapse; margin-bottom:24px; font-size:0.9rem;">
+                <thead>
+                    <tr style="border-bottom:1px solid #cbd5e1; text-align:left;">
+                        <th style="padding:8px 0;">Món ăn</th>
+                        <th style="padding:8px 0; text-align:center;">SL</th>
+                        <th style="padding:8px 0; text-align:right;">Đơn giá</th>
+                        <th style="padding:8px 0; text-align:right;">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${orderItems}" style="border-bottom:1px solid #f1f5f9;">
+                        <td style="padding:10px 0; font-weight:600;" th:text="${item.dish.name}"></td>
+                        <td style="padding:10px 0; text-align:center;" th:text="${item.quantity}"></td>
+                        <td style="padding:10px 0; text-align:right;" th:text="${#numbers.formatDecimal(item.actualPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                        <td style="padding:10px 0; text-align:right; font-weight:600;" th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Summary -->
+            <div style="border-top:2px dashed #cbd5e1; padding-top:16px; margin-bottom:24px;">
+                <div style="display:flex; justify-content:space-between; font-size:1.1rem; font-weight:800;">
+                    <span>TỔNG CỘNG:</span>
+                    <span style="color:#b91c1c;" th:text="${#numbers.formatDecimal(invoice.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#64748b; margin-top:6px;">
+                    <span>Trạng thái:</span>
+                    <span style="font-weight:700; color:#16a34a;" th:text="${invoice.paymentStatus.name() == 'PAID' ? 'ĐÃ THANH TOÁN' : 'CHỜ THANH TOÁN'}"></span>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="text-align:center; font-size:0.85rem; color:#64748b; border-top:1px solid #f1f5f9; padding-top:16px;">
+                <div>Cảm ơn Quý khách và Hẹn gặp lại!</div>
+                <div style="font-size:0.75rem; margin-top:4px;">(Giá đã bao gồm thuế VAT và phí dịch vụ)</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

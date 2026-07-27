@@ -18,4 +18,5 @@ public interface TableService {
     RestaurantTable createTable(TableRequest request);
     RestaurantTable updateTable(Long id, TableRequest request);
     void deleteTable(Long id);
+    RestaurantTable cleanTable(Long tableId);
 }

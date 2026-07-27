@@ -29,6 +29,9 @@
                 <a th:href="@{/staff/table-board}" class="nav-item active">
                     <i class="bi bi-grid-3x3-gap-fill nav-icon"></i><span>Sơ đồ bàn ăn</span>
                 </a>
+                <a th:href="@{/staff/invoices}" class="nav-item">
+                    <i class="bi bi-receipt nav-icon"></i><span>Hóa đơn</span>
+                </a>
             </div>
             <div class="sidebar-footer">
                 <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
@@ -106,7 +109,14 @@
                             <a th:if="${t.status.name() == 'SERVING'}" th:href="@{/staff/bookings}" class="btn btn-primary btn-sm btn-block" style="justify-content:center;">
                                 <i class="bi bi-eye"></i> Xem đơn hàng
                             </a>
-                            <span th:unless="${t.status.name() == 'SERVING'}" style="font-size:0.8rem; color:var(--clr-text-muted); display:block; text-align:center;">
+                            <form th:if="${t.status.name() == 'DIRTY'}" th:action="@{/staff/tables/{id}/clean(id=${t.id})}" method="post" style="display:block; width:100%;">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <button type="submit" class="btn btn-success btn-sm btn-block" style="justify-content:center; width:100%; background:#10b981; border:none;"
+                                        data-confirm="Xác nhận bàn này đã được dọn dẹp sạch sẽ?">
+                                    <i class="bi bi-stars"></i> Đã dọn dẹp
+                                </button>
+                            </form>
+                            <span th:if="${t.status.name() != 'SERVING' && t.status.name() != 'DIRTY'}" style="font-size:0.8rem; color:var(--clr-text-muted); display:block; text-align:center;">
                                 — Sẵn sàng —
                             </span>
                         </div>

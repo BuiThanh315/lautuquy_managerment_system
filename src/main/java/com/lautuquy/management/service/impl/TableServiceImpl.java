@@ -103,4 +103,16 @@ public class TableServiceImpl implements TableService {
         RestaurantTable table = getTableById(id);
         restaurantTableRepository.delete(table);
     }
+
+    @Override
+    @Transactional
+    public RestaurantTable cleanTable(Long tableId) {
+        RestaurantTable table = getTableById(tableId);
+        if (table.getTableType() != null && table.getTableType().getTableClass() == TableType.TableClass.VIP) {
+            table.setStatus(RestaurantTable.Status.RESERVED);
+        } else {
+            table.setStatus(RestaurantTable.Status.EMPTY);
+        }
+        return restaurantTableRepository.save(table);
+    }
 }

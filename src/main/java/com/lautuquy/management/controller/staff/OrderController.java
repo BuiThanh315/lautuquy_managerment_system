@@ -3,6 +3,7 @@ package com.lautuquy.management.controller.staff;
 import com.lautuquy.management.entity.Booking;
 import com.lautuquy.management.entity.Dish;
 import com.lautuquy.management.entity.Order;
+import com.lautuquy.management.entity.RestaurantTable;
 import com.lautuquy.management.service.BookingService;
 import com.lautuquy.management.service.DishService;
 import com.lautuquy.management.service.OrderService;
@@ -117,5 +118,19 @@ public class OrderController {
             redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa món: " + e.getMessage());
         }
         return "redirect:/staff/orders/booking/" + bookingId;
+    }
+
+    /**
+     * Dọn dẹp bàn ăn (Chuyển trạng thái từ DIRTY sang EMPTY hoặc RESERVED đối với bàn VIP)
+     */
+    @PostMapping("/tables/{tableId}/clean")
+    public String cleanTable(@PathVariable Long tableId, RedirectAttributes redirectAttributes) {
+        try {
+            RestaurantTable table = tableService.cleanTable(tableId);
+            redirectAttributes.addFlashAttribute("successMessage", "Bàn " + table.getTableNumber() + " đã dọn dẹp xong (Trạng thái: " + table.getStatus() + ").");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể dọn dẹp bàn: " + e.getMessage());
+        }
+        return "redirect:/staff/table-board";
     }
 }

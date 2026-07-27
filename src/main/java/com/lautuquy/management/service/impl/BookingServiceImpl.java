@@ -59,7 +59,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         Account account = accountRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Tài khoản", 0L));
+                .orElseThrow(() -> new ResourceNotFoundException("Tài khoản", username));
 
         TableType tableType = tableTypeRepository.findById(request.getTableTypeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Loại bàn", request.getTableTypeId()));
@@ -110,7 +110,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<Booking> getBookingsByAccount(String username) {
         Account account = accountRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Tài khoản", 0L));
+                .orElseThrow(() -> new ResourceNotFoundException("Tài khoản", username));
         return bookingRepository.findByAccountIdOrderByCreatedAtDesc(account.getId());
     }
 

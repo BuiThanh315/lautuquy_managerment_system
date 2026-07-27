@@ -143,6 +143,21 @@ CREATE TABLE invoices (
     CONSTRAINT fk_invoices_order FOREIGN KEY (order_id) REFERENCES orders(id)
 ) ENGINE=InnoDB;
 
+-- =========================================================
+-- 11. BẢNG feedbacks
+-- =========================================================
+CREATE TABLE feedbacks (
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    account_id BIGINT NOT NULL,
+    dish_id    BIGINT NULL,
+    content    TEXT NOT NULL,
+    reply      TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_feedbacks_account FOREIGN KEY (account_id) REFERENCES accounts(id),
+    CONSTRAINT fk_feedbacks_dish    FOREIGN KEY (dish_id)    REFERENCES dishes(id)
+) ENGINE=InnoDB;
+
+
 
 -- =========================================================
 -- =================  DỮ LIỆU MẪU (SAMPLE DATA)  ============

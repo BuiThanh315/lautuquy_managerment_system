@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản Lý Đặt Bàn — Lẩu Tứ Quý</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+</head>
+
+<body>
+
+    <!-- Sidebar Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <div class="app-shell">
+        <!-- SIDEBAR STAFF -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <img th:src="@{/images/logo.png}" alt="Lẩu Tứ Quý Logo" class="brand-logo-img" />
+                <div class="brand-name">Lẩu Tứ Quý</div>
+                <div class="brand-subtitle">Restaurant Management</div>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section-title">Nhân viên</div>
+                <a th:href="@{/staff/bookings}" class="nav-item active">
+                    <i class="bi bi-calendar-check-fill nav-icon"></i><span>Duyệt đặt bàn</span>
+                </a>
+                <a th:href="@{/staff/table-board}" class="nav-item">
+                    <i class="bi bi-grid-3x3-gap-fill nav-icon"></i><span>Sơ đồ bàn ăn</span>
+                </a>
+            </div>
+            <div class="sidebar-footer">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                    <div class="user-avatar">
+                        <span sec:authentication="name"
+                            th:text="${#strings.substring(#authentication.name,0,1).toUpperCase()}">S</span>
+                    </div>
+                    <div>
+                        <div style="font-size:0.85rem; font-weight:600; color:var(--clr-text-primary);"
+                            th:text="${#authentication.name}">Staff</div>
+                        <div style="font-size:0.7rem; color:var(--clr-coral);" sec:authentication="principal.authorities">STAFF</div>
+                    </div>
+                </div>
+                <form th:action="@{/auth/logout}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button type="submit" class="btn btn-secondary btn-sm btn-block" style="justify-content:center;">
+                        <i class="bi bi-box-arrow-left"></i> Đăng xuất
+                    </button>
+                </form>
+            </div>
+        </nav>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <header class="topbar">
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <button id="sidebar-toggle" class="btn btn-secondary btn-sm"
+                        style="display:none; padding:8px 10px;">
+                        <i class="bi bi-list" style="font-size:1.2rem;"></i>
+                    </button>
+                    <div>
+                        <div class="topbar-title">Quản Lý Đặt Bàn</div>
+                    </div>
+                </div>
+                <div class="topbar-user">
+                    <span style="font-size:0.8rem; color:var(--clr-text-muted);"
+                        th:text="'Xin chào, ' + ${#authentication.name}"></span>
+                </div>
+            </header>
+
+            <main class="page-content">
+
+                <!-- Flash Messages -->
+                <div th:if="${successMessage}" class="alert alert-success" data-auto-dismiss="true">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${errorMessage}" class="alert alert-danger" data-auto-dismiss="true">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    <span th:text="${errorMessage}"></span>
+                </div>
+
+                <!-- Status Filter Pills -->
+                <div class="category-pills mb-lg" style="flex-wrap: wrap;">
+                    <a th:href="@{/staff/bookings(status='ALL')}"
+                        class="category-pill" th:classappend="${selectedStatus == 'ALL' ? 'active' : ''}">
+                        <i class="bi bi-list-stars"></i> Tất cả
+                    </a>
+                    <a th:href="@{/staff/bookings(status='PENDING')}"
+                        class="category-pill" th:classappend="${selectedStatus == 'PENDING' ? 'active' : ''}">
+                        <i class="bi bi-hourglass-split"></i> Chờ duyệt
+                    </a>
+                    <a th:href="@{/staff/bookings(status='CONFIRMED')}"
+                        class="category-pill" th:classappend="${selectedStatus == 'CONFIRMED' ? 'active' : ''}">
+                        <i class="bi bi-check2-circle"></i> Đã xác nhận
+                    </a>
+                    <a th:href="@{/staff/bookings(status='SEATED')}"
+                        class="category-pill" th:classappend="${selectedStatus == 'SEATED' ? 'active' : ''}">
+                        <i class="bi bi-person-check-fill"></i> Đã nhận bàn
+                    </a>
+                    <a th:href="@{/staff/bookings(status='CANCELLED')}"
+                        class="category-pill" th:classappend="${selectedStatus == 'CANCELLED' ? 'active' : ''}">
+                        <i class="bi bi-x-circle"></i> Đã hủy
+                    </a>
+                </div>
+
+                <!-- Bookings Table Card -->
+                <div class="card">
+                    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <h2 class="card-title">
+                            <i class="bi bi-calendar-event" style="color:var(--clr-gold);"></i>
+                            Danh sách đơn đặt bàn
+                        </h2>
+                        <span style="font-size:0.85rem; color:var(--clr-text-muted);"
+                            th:text="'Tổng cộng: ' + ${bookings.size()} + ' đơn'"></span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="table" id="bookings-table">
+                            <thead>
+                                <tr>
+                                    <th>#Mã đơn</th>
+                                    <th>Khách hàng</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Ngày & Giờ</th>
+                                    <th>Loại bàn yêu cầu</th>
+                                    <th>Bàn thực tế</th>
+                                    <th>Ghi chú</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="b : ${bookings}">
+                                    <td th:text="'#BK-' + ${b.id}" style="font-weight:700; color:var(--clr-gold);"></td>
+                                    <td th:text="${b.customerName}" style="font-weight:600;"></td>
+                                    <td th:text="${b.customerPhone}"></td>
+                                    <td th:text="${#temporals.format(b.bookingDate, 'dd/MM/yyyy')} + ' ' + ${b.bookingTime}"></td>
+                                    <td>
+                                        <span th:text="'Bàn ' + ${b.tableType.capacity} + ' người'"></span>
+                                        <span th:text="'(' + ${b.tableType.tableClass} + ')'"
+                                            style="font-size:0.75rem; color:var(--clr-text-muted);"></span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${b.assignedTable != null}" class="badge badge-active"
+                                            th:text="'Bàn ' + ${b.assignedTable.tableNumber}"></span>
+                                        <span th:if="${b.assignedTable == null}" style="color:var(--clr-text-muted);">—</span>
+                                    </td>
+                                    <td th:text="${b.specialNotes ?: '—'}" style="max-width:180px; overflow:hidden; text-overflow:ellipsis;"></td>
+                                    <td>
+                                        <span th:switch="${b.status.name()}">
+                                            <span th:case="'PENDING'" class="badge badge-pending">Chờ duyệt</span>
+                                            <span th:case="'CONFIRMED'" class="badge badge-confirmed">Đã xác nhận</span>
+                                            <span th:case="'SEATED'" class="badge badge-seated">Đã nhận bàn</span>
+                                            <span th:case="'CANCELLED'" class="badge badge-cancelled">Đã hủy</span>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+
+                                            <!-- PENDING -> DUYỆT -->
+                                            <form th:if="${b.status.name() == 'PENDING'}"
+                                                th:action="@{/staff/bookings/{id}/confirm(id=${b.id})}" method="post" style="display:inline;">
+                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                                <button type="submit" class="btn btn-success btn-sm">
+                                                    <i class="bi bi-check-lg"></i> Duyệt
+                                                </button>
+                                            </form>
+
+                                            <!-- PENDING hoặc CONFIRMED -> XẾP BÀN -->
+                                            <button th:if="${b.status.name() == 'PENDING' || b.status.name() == 'CONFIRMED'}"
+                                                type="button" class="btn btn-primary btn-sm"
+                                                th:onclick="'openSeatModal(' + ${b.id} + ', ' + ${b.tableType.id} + ')'">
+                                                <i class="bi bi-box-arrow-in-right"></i> Xếp bàn
+                                            </button>
+
+                                            <!-- SEATED -> GỌI MÓN -->
+                                            <a th:if="${b.status.name() == 'SEATED'}"
+                                                th:href="@{/staff/orders/booking/{id}(id=${b.id})}" class="btn btn-gold btn-sm">
+                                                <i class="bi bi-cart-plus"></i> Gọi món
+                                            </a>
+
+                                            <!-- HỦY ĐƠN (Nếu chưa SEATED) -->
+                                            <form th:if="${b.status.name() != 'SEATED' && b.status.name() != 'CANCELLED'}"
+                                                th:action="@{/staff/bookings/{id}/cancel(id=${b.id})}" method="post" style="display:inline;">
+                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                                <button type="submit" class="btn btn-danger btn-sm"
+                                                    data-confirm="Bạn có chắc chắn muốn hủy đơn đặt bàn này?">
+                                                    <i class="bi bi-x-circle"></i> Hủy
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:if="${bookings.isEmpty()}">
+                                    <td colspan="9" style="text-align:center; padding:48px; color:var(--clr-text-muted);">
+                                        <i class="bi bi-inbox" style="font-size:2rem; display:block; margin-bottom:8px;"></i>
+                                        Không có đơn đặt bàn nào.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL XẾP BÀN -->
+    <div id="seatModal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
+        <div class="card" style="width:90%; max-width:480px; padding:24px; position:relative;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 style="margin:0; font-size:1.1rem; color:var(--clr-text-primary);">
+                    <i class="bi bi-box-arrow-in-right" style="color:var(--clr-gold);"></i> Chọn bàn xếp cho khách
+                </h3>
+                <button type="button" onclick="closeSeatModal()" style="background:none; border:none; font-size:1.4rem; color:var(--clr-text-muted); cursor:pointer;">&times;</button>
+            </div>
+            <form id="seatForm" method="post" th:action="@{/staff/bookings/0/seat}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <div class="form-group">
+                    <label class="form-label" for="tableId">Chọn bàn trống phù hợp:</label>
+                    <select name="tableId" id="tableId" class="form-select" required>
+                        <option value="">-- Chọn bàn --</option>
+                        <option th:each="t : ${emptyTables}" th:value="${t.id}"
+                            th:data-type-id="${t.tableType.id}"
+                            th:text="'Bàn ' + ${t.tableNumber} + ' — ' + ${t.tableType.capacity} + ' người (' + ${t.tableType.tableClass} + ')'">
+                        </option>
+                    </select>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeSeatModal()">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Xác nhận xếp bàn</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:src="@{/js/main.js}"></script>
+    <script>
+        function openSeatModal(bookingId, tableTypeId) {
+            const form = document.getElementById('seatForm');
+            form.action = '/staff/bookings/' + bookingId + '/seat';
+
+            // Ưu tiên filter dropdown bàn phù hợp loại bàn
+            const select = document.getElementById('tableId');
+            const options = select.querySelectorAll('option');
+            options.forEach(opt => {
+                if (opt.value === "") return;
+                const typeId = opt.getAttribute('data-type-id');
+                if (typeId == tableTypeId) {
+                    opt.style.fontWeight = 'bold';
+                    opt.text = opt.text.replace(' [Gợi ý]', '') + ' [Gợi ý]';
+                }
+            });
+
+            document.getElementById('seatModal').style.display = 'flex';
+        }
+
+        function closeSeatModal() {
+            document.getElementById('seatModal').style.display = 'none';
+        }
+    </script>
+    <style>
+        .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99; }
+        .sidebar-overlay.active { display:block; }
+        @media (max-width:992px) { #sidebar-toggle { display:flex !important; } }
+    </style>
+</body>
+
+</html>

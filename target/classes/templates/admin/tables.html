@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Quản lý Bàn Ăn — Lẩu Tứ Quý</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+</head>
+<body>
+
+<div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+<div class="app-shell">
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <img th:src="@{/images/logo.png}" alt="Lẩu Tứ Quý Logo" class="brand-logo-img"/>
+            <div class="brand-name">Lẩu Tứ Quý</div>
+            <div class="brand-subtitle">Restaurant Management</div>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-section-title">Quản trị viên</div>
+            <a th:href="@{/admin/accounts}" class="nav-item">
+                <i class="bi bi-people-fill nav-icon"></i><span>Tài khoản</span>
+            </a>
+            <a th:href="@{/admin/categories}" class="nav-item">
+                <i class="bi bi-grid-3x3-gap-fill nav-icon"></i><span>Danh mục</span>
+            </a>
+            <a th:href="@{/admin/dishes}" class="nav-item">
+                <i class="bi bi-egg-fried nav-icon"></i><span>Thực đơn</span>
+            </a>
+            <a th:href="@{/admin/tables}" class="nav-item active">
+                <i class="bi bi-table nav-icon"></i><span>Bàn ăn</span>
+            </a>
+            <a th:href="@{/admin/feedbacks}" class="nav-item">
+                <i class="bi bi-chat-dots-fill nav-icon"></i><span>Phản hồi</span>
+            </a>
+            <a th:href="@{/admin/dashboard}" class="nav-item">
+                <i class="bi bi-bar-chart-fill nav-icon"></i><span>Báo cáo</span>
+            </a>
+        </div>
+        <div class="sidebar-footer">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                <div class="user-avatar">
+                    <span sec:authentication="name" th:text="${#strings.substring(#authentication.name,0,1).toUpperCase()}">A</span>
+                </div>
+                <div>
+                    <div style="font-size:0.85rem; font-weight:600; color:var(--clr-text-primary);" th:text="${#authentication.name}">Admin</div>
+                    <div style="font-size:0.7rem; color:var(--clr-gold);">ADMIN</div>
+                </div>
+            </div>
+            <form th:action="@{/auth/logout}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit" class="btn btn-secondary btn-sm btn-block" style="justify-content:center;">
+                    <i class="bi bi-box-arrow-left"></i> Đăng xuất
+                </button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <header class="topbar">
+            <div style="display:flex; align-items:center; gap:16px;">
+                <button id="sidebar-toggle" class="btn btn-secondary btn-sm" style="display:none; padding:8px 10px;">
+                    <i class="bi bi-list" style="font-size:1.2rem;"></i>
+                </button>
+                <div class="topbar-title">Quản lý Bàn Ăn & Loại Bàn</div>
+            </div>
+            <div class="topbar-user">
+                <span style="font-size:0.8rem; color:var(--clr-text-muted);" th:text="'Xin chào, ' + ${#authentication.name}"></span>
+            </div>
+        </header>
+
+        <main class="page-content">
+            <div th:if="${successMessage}" class="alert alert-success" data-auto-dismiss="true">
+                <i class="bi bi-check-circle-fill"></i><span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger" data-auto-dismiss="true">
+                <i class="bi bi-exclamation-circle-fill"></i><span th:text="${errorMessage}"></span>
+            </div>
+
+            <div class="grid-2 mb-xl">
+                <!-- Thêm Loại Bàn -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="bi bi-diagram-3-fill" style="color:var(--clr-gold);"></i> Thêm Loại Bàn</h2>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/admin/tables/types}" method="post" th:object="${tableTypeRequest}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <div class="form-group">
+                                <label class="form-label" for="capacity">Sức chứa (Người)</label>
+                                <input type="number" id="capacity" th:field="*{capacity}" class="form-control" placeholder="VD: 4, 6, 8..." min="1" required/>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="tableClass">Hạng bàn</label>
+                                <select id="tableClass" th:field="*{tableClass}" class="form-control">
+                                    <option value="REGULAR">REGULAR (Bàn thường)</option>
+                                    <option value="VIP">VIP (Bàn cao cấp)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-secondary btn-block">Thêm Loại Bàn</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Thêm Bàn Ăn -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="bi bi-plus-circle-fill" style="color:var(--clr-coral);"></i> Thêm Bàn Ăn</h2>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/admin/tables}" method="post" th:object="${tableRequest}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <div class="form-group">
+                                <label class="form-label" for="tableNumber">Mã/Số Bàn</label>
+                                <input type="text" id="tableNumber" th:field="*{tableNumber}" class="form-control" placeholder="VD: T01, V01..." required/>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="tableTypeId">Loại bàn</label>
+                                <select id="tableTypeId" th:field="*{tableTypeId}" class="form-control" required>
+                                    <option value="">-- Chọn loại bàn --</option>
+                                    <option th:each="type : ${tableTypes}" th:value="${type.id}" th:text="'Bàn ' + ${type.capacity} + ' người (' + ${type.tableClass} + ')'"></option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Thêm Bàn Ăn</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bảng Bàn Ăn -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="bi bi-grid-fill" style="color:var(--clr-gold);"></i> Danh sách Bàn Ăn</h2>
+                </div>
+                <div class="table-wrapper">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Số bàn</th>
+                                <th>Sức chứa</th>
+                                <th>Hạng bàn</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="t : ${tables}">
+                                <td th:text="${t.tableNumber}" style="font-weight:700; color:var(--clr-gold);"></td>
+                                <td th:text="${t.tableType.capacity} + ' người'"></td>
+                                <td>
+                                    <span th:if="${t.tableType.tableClass.name() == 'VIP'}" class="badge badge-admin">VIP</span>
+                                    <span th:if="${t.tableType.tableClass.name() == 'REGULAR'}" class="badge badge-customer">REGULAR</span>
+                                </td>
+                                <td>
+                                    <span th:switch="${t.status.name()}">
+                                        <span th:case="'EMPTY'" class="badge badge-active">Trống</span>
+                                        <span th:case="'RESERVED'" class="badge badge-pending">Đã đặt trước</span>
+                                        <span th:case="'SERVING'" class="badge badge-confirmed">Đang phục vụ</span>
+                                        <span th:case="'DIRTY'" class="badge badge-locked">Cần dọn</span>
+                                    </span>
+                                </td>
+                                <td>
+                                    <form th:action="@{/admin/tables/{id}/delete(id=${t.id})}" method="post" style="display:inline;">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                        <button type="submit" class="btn btn-danger btn-sm" data-confirm="Bạn có chắc muốn xóa bàn này?">
+                                            <i class="bi bi-trash-fill"></i> Xóa
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

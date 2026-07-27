@@ -1,0 +1,49 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/lautuquy_db?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+    username: root
+    password: 123456          # ⚠️ Thay bằng password MySQL của bạn nếu khác
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update      # Tự động cập nhật bảng/cột mới mà không làm mất dữ liệu cũ
+    show-sql: true
+    open-in-view: false     # Tắt OSIV để tránh warning
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false            # Tắt cache trong môi trường dev
+    encoding: UTF-8
+
+  messages:
+    encoding: UTF-8
+
+  web:
+    resources:
+      static-locations: classpath:/static/
+      cache:
+        period: 0           # Không cache static files trong dev
+
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  error:
+    whitelabel:
+      enabled: false        # Tắt trang lỗi mặc định của Spring
+    path: /error
+
+logging:
+  level:
+    com.lautuquy: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG

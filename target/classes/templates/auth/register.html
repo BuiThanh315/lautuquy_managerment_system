@@ -104,9 +104,17 @@
             </label>
             <input type="tel" id="phone" th:field="*{phone}"
                    th:class="'form-control' + (${#fields.hasErrors('phone')} ? ' is-invalid' : '')"
-                   placeholder="0912 345 678"/>
+                   placeholder="0912 345 678"
+                   maxlength="10"
+                   oninput="validatePhone(this)"/>
             <span class="invalid-feedback" th:if="${#fields.hasErrors('phone')}"
                   th:errors="*{phone}"></span>
+            <div id="phone-error" style="display:none; font-size:0.78rem; color:var(--clr-coral); margin-top:4px;">
+                <i class="bi bi-exclamation-circle-fill"></i> <span id="phone-error-msg"></span>
+            </div>
+            <div style="font-size:0.72rem; color:var(--clr-text-muted); margin-top:3px;">
+                Đầu số hợp lệ: 032–039, 056, 058, 059, 070, 076–079, 081–086, 088–099, v.v.
+            </div>
         </div>
 
         <div class="mt-lg">
@@ -127,6 +135,51 @@
 
 <script th:src="@{/js/main.js}"></script>
 <script>
+    // Regex đầu số điện thoại Việt Nam hợp lệ (10 số)
+    const PHONE_REGEX = /^(03[2-9]|09[6-8]|08[1-6]|088|09[14]|07[06-9]|09[03]|089|05[68]|092|059|099)\d{7}$/;
+
+    function validatePhone(input) {
+        const val = input.value.trim();
+        const errorDiv = document.getElementById('phone-error');
+        const errorMsg = document.getElementById('phone-error-msg');
+
+        // Xoá lỗi nếu ô trống (vì là tuỳ chọn)
+        if (val === '') {
+            errorDiv.style.display = 'none';
+            input.classList.remove('is-invalid');
+            return;
+        }
+
+        if (!/^\d+$/.test(val)) {
+            errorDiv.style.display = 'block';
+            errorMsg.textContent = 'Số điện thoại chỉ được chứa chữ số.';
+            input.classList.add('is-invalid');
+        } else if (val.length !== 10) {
+            errorDiv.style.display = 'block';
+            errorMsg.textContent = 'Số điện thoại phải có đúng 10 chữ số.';
+            input.classList.add('is-invalid');
+        } else if (!PHONE_REGEX.test(val)) {
+            errorDiv.style.display = 'block';
+            errorMsg.textContent = 'Đầu số không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (VD: 0912345678).';
+            input.classList.add('is-invalid');
+        } else {
+            errorDiv.style.display = 'none';
+            input.classList.remove('is-invalid');
+        }
+    }
+
+    // Chặn submit nếu phone có lỗi
+    document.querySelector('form[data-loading]').addEventListener('submit', function(e) {
+        const phoneInput = document.getElementById('phone');
+        if (phoneInput && phoneInput.value.trim() !== '') {
+            validatePhone(phoneInput);
+            if (phoneInput.classList.contains('is-invalid')) {
+                e.preventDefault();
+                phoneInput.focus();
+            }
+        }
+    });
+
     function togglePwd(inputId, iconId) {
         const input = document.getElementById(inputId);
         const icon  = document.getElementById(iconId);

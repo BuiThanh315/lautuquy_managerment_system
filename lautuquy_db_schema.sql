@@ -192,17 +192,17 @@ INSERT INTO categories (id, name, description) VALUES
 -- dishes: các món ăn (Bò Wagyu quantity = 0 -> OUT_OF_STOCK để kiểm thử)
 -- ---------------------------------------------------------
 INSERT INTO dishes (id, category_id, name, image_url, price, description, quantity, status) VALUES
-(1, 1, 'Nước lẩu Thái chua cay',   '/images/dishes/lau-thai.jpg',    89000,  'Vị chua cay nồng nàn chuẩn vị Thái', 50, 'AVAILABLE'),
-(2, 1, 'Nước lẩu Kim Chi Hàn Quốc', '/images/dishes/lau-kimchi.jpg',  99000,  'Vị cay nồng đậm đà chuẩn vị Hàn',    50, 'AVAILABLE'),
-(3, 1, 'Nước lẩu Nấm thanh vị',    '/images/dishes/lau-nam.jpg',     79000,  'Hương vị thanh ngọt, bổ dưỡng',       50, 'AVAILABLE'),
-(4, 2, 'Ba chỉ bò Mỹ nhúng lẩu',   '/images/dishes/bo-my.jpg',       129000, 'Thịt ba chỉ bò Mỹ vân mỡ đều ngon',   50, 'AVAILABLE'),
-(5, 2, 'Bò Wagyu Nhật Bản',        '/images/dishes/bo-wagyu.jpg',    259000, 'Thịt bò Wagyu cao cấp mềm mịn',       0,  'OUT_OF_STOCK'),
-(6, 3, 'Tôm sú tươi sống',         '/images/dishes/tom-su.jpg',      149000, 'Tôm sú tươi nhúng lẩu giòn ngọt',     45, 'AVAILABLE'),
-(7, 3, 'Mực ống tươi',             '/images/dishes/muc-ong.jpg',     109000, 'Mực ống tươi được làm sạch sẵn',      40, 'AVAILABLE'),
-(8, 4, 'Nấm kim châm tươi',        '/images/dishes/nam-kim-cham.jpg',39000,  'Nấm kim châm trắng giòn',            50, 'AVAILABLE'),
-(9, 4, 'Rau muống nhặt sẵn',       '/images/dishes/rau-muong.jpg',   25000,  'Rau muống xanh tươi',                50, 'AVAILABLE'),
-(10, 5, 'Coca-Cola ướp lạnh lon',   '/images/dishes/coca.jpg',        15000,  'Lon 330ml giải khát cực đã',          50, 'AVAILABLE'),
-(11, 5, 'Bia Tiger lon 330ml',     '/images/dishes/tiger.jpg',       25000,  'Bia Tiger mát lạnh',                 50, 'AVAILABLE');
+(1, 1, 'Nước lẩu Thái chua cay',   'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=600&auto=format&fit=crop',    89000,  'Vị chua cay nồng nàn chuẩn vị Thái', 59, 'AVAILABLE'),
+(2, 1, 'Nước lẩu Kim Chi Hàn Quốc', 'https://images.unsplash.com/photo-1583224994559-4d78e7a9ff68?w=600&auto=format&fit=crop',  99000,  'Vị cay nồng đậm đà chuẩn vị Hàn',    58, 'AVAILABLE'),
+(3, 1, 'Nước lẩu Nấm thanh vị',    'https://images.unsplash.com/photo-1547592180-85f173990554?w=600&auto=format&fit=crop',     79000,  'Hương vị thanh ngọt, bổ dưỡng',      300, 'AVAILABLE'),
+(4, 2, 'Ba chỉ bò Mỹ nhúng lẩu',   'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=600&auto=format&fit=crop',  129000, 'Thịt ba chỉ bò Mỹ vân mỡ đều ngon',  53, 'AVAILABLE'),
+(5, 2, 'Bò Wagyu Nhật Bản',        'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop',    259000, 'Thịt bò Wagyu cao cấp mềm mịn',       0,  'OUT_OF_STOCK'),
+(6, 3, 'Tôm sú tươi sống',         'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=600&auto=format&fit=crop',  149000, 'Tôm sú tươi nhúng lẩu giòn ngọt',    45, 'AVAILABLE'),
+(7, 3, 'Mực ống tươi',             'https://images.unsplash.com/photo-1559694097-0af00d977e34?w=600&auto=format&fit=crop',    109000, 'Mực ống tươi được làm sạch sẵn',     40, 'AVAILABLE'),
+(8, 4, 'Nấm kim châm tươi',        'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=600&auto=format&fit=crop',    39000,  'Nấm kim châm trắng giòn',            50, 'AVAILABLE'),
+(9, 4, 'Rau muống nhặt sẵn',       'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=600&auto=format&fit=crop',  25000,  'Rau muống xanh tươi',               50, 'AVAILABLE'),
+(10, 5, 'Coca-Cola ướp lạnh lon',  'https://images.unsplash.com/photo-1624552184280-9e9b8a56f12c?w=600&auto=format&fit=crop', 15000,  'Lon 330ml giải khát cực đã',         50, 'AVAILABLE'),
+(11, 5, 'Bia Tiger lon 330ml',     'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=600&auto=format&fit=crop', 25000,  'Bia Tiger mát lạnh',                50, 'AVAILABLE');
 
 -- ---------------------------------------------------------
 -- table_types: REGULAR & VIP

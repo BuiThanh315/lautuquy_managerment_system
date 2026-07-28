@@ -27,8 +27,8 @@ public class RegisterRequest {
     @Size(max = 100, message = "Email tối đa 100 ký tự")
     private String email;
 
-    @Pattern(regexp = "^(\\+84|0)[0-9]{9}$",
-             message = "Số điện thoại không hợp lệ (VD: 0912345678)")
+    @Pattern(regexp = "^(03[2-9]|09[6-8]|08[1-6]|088|09[14]|07[06-9]|09[03]|089|05[68]|092|059|099)\\d{7}$",
+             message = "Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam 10 số hợp lệ (VD: 0912345678)")
     private String phone;
 
     // Explicit getters & setters

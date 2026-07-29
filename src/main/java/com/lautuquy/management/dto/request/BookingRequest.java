@@ -30,6 +30,8 @@ public class BookingRequest {
     @NotNull(message = "Loại bàn không được để trống")
     private Long tableTypeId;
 
+    private Long tableId;
+
     @Size(max = 255, message = "Ghi chú tối đa 255 ký tự")
     private String specialNotes;
 
@@ -49,6 +51,9 @@ public class BookingRequest {
 
     public Long getTableTypeId() { return tableTypeId; }
     public void setTableTypeId(Long tableTypeId) { this.tableTypeId = tableTypeId; }
+
+    public Long getTableId() { return tableId; }
+    public void setTableId(Long tableId) { this.tableId = tableId; }
 
     public String getSpecialNotes() { return specialNotes; }
     public void setSpecialNotes(String specialNotes) { this.specialNotes = specialNotes; }

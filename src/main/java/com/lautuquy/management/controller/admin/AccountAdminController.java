@@ -31,30 +31,100 @@ public class AccountAdminController {
     }
 
     /**
-     * Khóa tài khoản theo ID.
+     * Khóa tài khoản theo ID (Xử lý AJAX).
      */
     @PostMapping("/{id}/lock")
-    public String lockAccount(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<java.util.Map<String, Object>> lockAccount(@PathVariable Long id) {
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
         try {
             accountService.lockAccount(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Đã khóa tài khoản thành công.");
+            response.put("success", true);
+            response.put("message", "Đã khóa tài khoản thành công.");
+            response.put("status", "LOCKED");
+            return org.springframework.http.ResponseEntity.ok(response);
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Không thể khóa tài khoản: " + e.getMessage());
+            response.put("success", false);
+            response.put("message", "Không thể khóa tài khoản: " + e.getMessage());
+            return org.springframework.http.ResponseEntity.badRequest().body(response);
         }
-        return "redirect:/admin/accounts";
     }
 
     /**
-     * Mở khóa tài khoản theo ID.
+     * Mở khóa tài khoản theo ID (Xử lý AJAX).
      */
     @PostMapping("/{id}/unlock")
-    public String unlockAccount(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<java.util.Map<String, Object>> unlockAccount(@PathVariable Long id) {
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
         try {
             accountService.unlockAccount(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Đã mở khóa tài khoản thành công.");
+            response.put("success", true);
+            response.put("message", "Đã mở khóa tài khoản thành công.");
+            response.put("status", "ACTIVE");
+            return org.springframework.http.ResponseEntity.ok(response);
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Không thể mở khóa tài khoản: " + e.getMessage());
+            response.put("success", false);
+            response.put("message", "Không thể mở khóa tài khoản: " + e.getMessage());
+            return org.springframework.http.ResponseEntity.badRequest().body(response);
         }
-        return "redirect:/admin/accounts";
+    }
+
+    /**
+     * Khóa hàng loạt tài khoản theo danh sách ID (Xử lý AJAX).
+     */
+    @PostMapping("/bulk-lock")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<java.util.Map<String, Object>> bulkLockAccounts(
+            @RequestBody java.util.List<Long> ids,
+            java.security.Principal principal) {
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        try {
+            int count = 0;
+            if (ids != null) {
+                for (Long id : ids) {
+                    var acc = accountService.findById(id);
+                    // Không cho phép tự khóa chính tài khoản admin đang thao tác
+                    if (principal != null && acc.getUsername().equals(principal.getName()) && acc.getRole() == com.lautuquy.management.entity.Account.Role.ADMIN) {
+                        continue;
+                    }
+                    accountService.lockAccount(id);
+                    count++;
+                }
+            }
+            response.put("success", true);
+            response.put("message", "Đã khóa thành công " + count + " tài khoản.");
+            return org.springframework.http.ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Không thể khóa hàng loạt: " + e.getMessage());
+            return org.springframework.http.ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    /**
+     * Mở khóa hàng loạt tài khoản theo danh sách ID (Xử lý AJAX).
+     */
+    @PostMapping("/bulk-unlock")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<java.util.Map<String, Object>> bulkUnlockAccounts(
+            @RequestBody java.util.List<Long> ids) {
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        try {
+            int count = 0;
+            if (ids != null) {
+                for (Long id : ids) {
+                    accountService.unlockAccount(id);
+                    count++;
+                }
+            }
+            response.put("success", true);
+            response.put("message", "Đã mở khóa thành công " + count + " tài khoản.");
+            return org.springframework.http.ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Không thể mở khóa hàng loạt: " + e.getMessage());
+            return org.springframework.http.ResponseEntity.badRequest().body(response);
+        }
     }
 }

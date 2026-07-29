@@ -28,15 +28,18 @@ public class BookingController {
     private final TableService tableService;
     private final DishService dishService;
     private final AccountService accountService;
+    private final com.lautuquy.management.service.TableLockService tableLockService;
 
     public BookingController(BookingService bookingService,
                              TableService tableService,
                              DishService dishService,
-                             AccountService accountService) {
+                             AccountService accountService,
+                             com.lautuquy.management.service.TableLockService tableLockService) {
         this.bookingService = bookingService;
         this.tableService = tableService;
         this.dishService = dishService;
         this.accountService = accountService;
+        this.tableLockService = tableLockService;
     }
 
     @GetMapping
@@ -67,6 +70,7 @@ public class BookingController {
     public String processBooking(@Valid @ModelAttribute("bookingRequest") BookingRequest request,
                                  BindingResult bindingResult,
                                  Principal principal,
+                                 jakarta.servlet.http.HttpSession session,
                                  RedirectAttributes redirectAttributes,
                                  Model model) {
         Booking seatedBooking = null;
@@ -104,6 +108,7 @@ public class BookingController {
 
         try {
             bookingService.createBooking(principal.getName(), request);
+            tableLockService.releaseSessionLock(session.getId());
             redirectAttributes.addFlashAttribute("successMessage", "Đặt bàn thành công! Đơn của bạn đang chờ nhà hàng tiếp nhận.");
             return "redirect:/customer/booking/history";
         } catch (Exception e) {

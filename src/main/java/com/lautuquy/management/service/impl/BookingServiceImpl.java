@@ -74,6 +74,12 @@ public class BookingServiceImpl implements BookingService {
         booking.setSpecialNotes(request.getSpecialNotes());
         booking.setStatus(Booking.Status.PENDING);
 
+        if (request.getTableId() != null) {
+            RestaurantTable table = restaurantTableRepository.findById(request.getTableId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Bàn ăn", request.getTableId()));
+            booking.setAssignedTable(table);
+        }
+
         Booking savedBooking = bookingRepository.save(booking);
 
         // Lưu danh sách món ăn đặt trước (Preorders)

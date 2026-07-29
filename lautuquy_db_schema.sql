@@ -1,7 +1,7 @@
 -- =========================================================
 -- LẨU TỨ QUÝ RESTAURANT MANAGEMENT SYSTEM
 -- Database: lautuquy_db
--- Mô tả: Schema (10 bảng) + dữ liệu mẫu phục vụ kiểm thử
+-- Mô tả: Schema (11 bảng) + dữ liệu mẫu chuẩn phục vụ kiểm thử
 -- Engine: MySQL 8.x / InnoDB
 -- =========================================================
 
@@ -15,7 +15,7 @@ USE lautuquy_db;
 CREATE TABLE accounts (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     username    VARCHAR(50)  NOT NULL UNIQUE,
-    password    VARCHAR(255) NOT NULL,               -- BCrypt hash
+    password    VARCHAR(255) NOT NULL,               -- BCrypt hash ("123456")
     full_name   VARCHAR(100) NOT NULL,
     email       VARCHAR(100) UNIQUE,
     phone       VARCHAR(15),
@@ -72,20 +72,20 @@ CREATE TABLE restaurant_tables (
 -- 6. BẢNG bookings
 -- =========================================================
 CREATE TABLE bookings (
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
-    account_id     BIGINT NOT NULL,
-    customer_name  VARCHAR(100) NOT NULL,
-    customer_phone VARCHAR(15) NOT NULL,
-    booking_date   DATE NOT NULL,
-    booking_time   TIME NOT NULL,
-    table_type_id  BIGINT NOT NULL,
-    assigned_table_id BIGINT,
-    special_notes  VARCHAR(255),
-    status         ENUM('PENDING','CONFIRMED','SEATED','CANCELLED') NOT NULL DEFAULT 'PENDING',
-    created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    account_id          BIGINT NOT NULL,
+    customer_name       VARCHAR(100) NOT NULL,
+    customer_phone      VARCHAR(15) NOT NULL,
+    booking_date        DATE NOT NULL,
+    booking_time        TIME NOT NULL,
+    table_type_id       BIGINT NOT NULL,
+    restaurant_table_id BIGINT,
+    special_notes       VARCHAR(255),
+    status              ENUM('PENDING','CONFIRMED','SEATED','CANCELLED') NOT NULL DEFAULT 'PENDING',
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_bookings_account   FOREIGN KEY (account_id) REFERENCES accounts(id),
     CONSTRAINT fk_bookings_tabletype FOREIGN KEY (table_type_id) REFERENCES table_types(id),
-    CONSTRAINT fk_bookings_table     FOREIGN KEY (assigned_table_id) REFERENCES restaurant_tables(id)
+    CONSTRAINT fk_bookings_table     FOREIGN KEY (restaurant_table_id) REFERENCES restaurant_tables(id)
 ) ENGINE=InnoDB;
 
 -- =========================================================
@@ -165,44 +165,43 @@ CREATE TABLE feedbacks (
 
 -- ---------------------------------------------------------
 -- accounts: 1 Admin, 2 Staff, 5 Customer (1 bị LOCKED để test)
--- Mật khẩu mẫu (plaintext gốc trước khi hash BCrypt): "123456"
--- (GIỮ NGUYÊN TÀI KHOẢN THEO YÊU CẦU)
+-- Mật khẩu mẫu plaintext: "123456" (đã mã hóa BCrypt)
 -- ---------------------------------------------------------
 INSERT INTO accounts (id, username, password, full_name, email, phone, role, status, created_at) VALUES
-(1, 'admin01',   '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.AQvq4a1', 'Nguyễn Văn Quản',  'admin@lautuquy.vn',    '0900000001', 'ADMIN',    'ACTIVE', '2026-06-01 08:00:00'),
-(2, 'staff01',   '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.AQvq4a1', 'Trần Thị Phục Vụ', 'staff01@lautuquy.vn',  '0900000002', 'STAFF',    'ACTIVE', '2026-06-01 08:10:00'),
-(3, 'staff02',   '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.AQvq4a1', 'Lê Văn Bàn',       'staff02@lautuquy.vn',  '0900000003', 'STAFF',    'ACTIVE', '2026-06-01 08:15:00'),
-(4, 'khachA',    '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.AQvq4a1', 'Phạm Thu Hà',      'hapham@gmail.com',     '0911111111', 'CUSTOMER', 'ACTIVE', '2026-06-02 09:00:00'),
-(5, 'khachB',    '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.AQvq4a1', 'Đỗ Minh Khang',    'khangdo@gmail.com',    '0922222222', 'CUSTOMER', 'ACTIVE', '2026-06-02 09:05:00'),
-(6, 'khachC',    '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.AQvq4a1', 'Vũ Ngọc Lan',      'lanvu@gmail.com',      '0933333333', 'CUSTOMER', 'ACTIVE', '2026-06-03 10:00:00'),
-(7, 'khachD',    '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.AQvq4a1', 'Bùi Anh Tuấn',     'tuanbui@gmail.com',    '0944444444', 'CUSTOMER', 'ACTIVE', '2026-06-03 10:30:00'),
-(8, 'khachE_vipham', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.AQvq4a1', 'Hoàng Gian Lận',   'ganlanx@gmail.com',    '0955555555', 'CUSTOMER', 'LOCKED', '2026-06-04 11:00:00');
+(1, 'admin01',       '$2a$10$3pvDpdH9YujIVt.CG3tRYOODbrwJ7/jXL5rQbAGU3YXabj7B6cRAa', 'Nguyễn Văn Quản',  'admin@lautuquy.vn',    '0900000001', 'ADMIN',    'ACTIVE', '2026-06-01 08:00:00'),
+(2, 'staff01',       '$2a$10$3pvDpdH9YujIVt.CG3tRYOODbrwJ7/jXL5rQbAGU3YXabj7B6cRAa', 'Trần Thị Phục Vụ', 'staff01@lautuquy.vn',  '0900000002', 'STAFF',    'ACTIVE', '2026-06-01 08:10:00'),
+(3, 'staff02',       '$2a$10$3pvDpdH9YujIVt.CG3tRYOODbrwJ7/jXL5rQbAGU3YXabj7B6cRAa', 'Lê Văn Bàn',       'staff02@lautuquy.vn',  '0900000003', 'STAFF',    'ACTIVE', '2026-06-01 08:15:00'),
+(4, 'khachA',        '$2a$10$3pvDpdH9YujIVt.CG3tRYOODbrwJ7/jXL5rQbAGU3YXabj7B6cRAa', 'Phạm Thu Hà',      'hapham@gmail.com',     '0911111111', 'CUSTOMER', 'ACTIVE', '2026-06-02 09:00:00'),
+(5, 'khachB',        '$2a$10$3pvDpdH9YujIVt.CG3tRYOODbrwJ7/jXL5rQbAGU3YXabj7B6cRAa', 'Đỗ Minh Khang',    'khangdo@gmail.com',    '0922222222', 'CUSTOMER', 'ACTIVE', '2026-06-02 09:05:00'),
+(6, 'khachC',        '$2a$10$3pvDpdH9YujIVt.CG3tRYOODbrwJ7/jXL5rQbAGU3YXabj7B6cRAa', 'Vũ Ngọc Lan',      'lanvu@gmail.com',      '0933333333', 'CUSTOMER', 'ACTIVE', '2026-06-03 10:00:00'),
+(7, 'khachD',        '$2a$10$3pvDpdH9YujIVt.CG3tRYOODbrwJ7/jXL5rQbAGU3YXabj7B6cRAa', 'Bùi Anh Tuấn',     'tuanbui@gmail.com',    '0944444444', 'CUSTOMER', 'ACTIVE', '2026-06-03 10:30:00'),
+(8, 'khachE_vipham', '$2a$10$3pvDpdH9YujIVt.CG3tRYOODbrwJ7/jXL5rQbAGU3YXabj7B6cRAa', 'Hoàng Gian Lận',   'gianlanx@gmail.com',   '0955555555', 'CUSTOMER', 'LOCKED', '2026-06-04 11:00:00');
 
 -- ---------------------------------------------------------
 -- categories: 5 danh mục chính
 -- ---------------------------------------------------------
 INSERT INTO categories (id, name, description) VALUES
-(1, 'Nước lẩu',        'Các loại nước lẩu đặc trưng: Thái, Kim Chi, Nấm...'),
-(2, 'Đồ nhúng bò',      'Thịt bò tươi ngon thái mỏng nhúng lẩu'),
-(3, 'Đồ nhúng hải sản', 'Tôm, mực, ngao, cá phi lê tươi sống'),
-(4, 'Rau nấm tươi',     'Các loại rau củ nấm sạch dùng kèm lẩu'),
+(1, 'Nước lẩu',         'Các loại nước lẩu đặc trưng: Thái, Kim Chi, Nấm...'),
+(2, 'Đồ nhúng bò',       'Thịt bò tươi ngon thái mỏng nhúng lẩu'),
+(3, 'Đồ nhúng hải sản',  'Tôm, mực, ngao, cá phi lê tươi sống'),
+(4, 'Rau nấm tươi',      'Các loại rau củ nấm sạch dùng kèm lẩu'),
 (5, 'Đồ uống & Trái cây','Nước ngọt, bia, nước ép trái cây giải khát');
 
 -- ---------------------------------------------------------
 -- dishes: các món ăn (Bò Wagyu quantity = 0 -> OUT_OF_STOCK để kiểm thử)
 -- ---------------------------------------------------------
 INSERT INTO dishes (id, category_id, name, image_url, price, description, quantity, status) VALUES
-(1, 1, 'Nước lẩu Thái chua cay',   'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=600&auto=format&fit=crop',    89000,  'Vị chua cay nồng nàn chuẩn vị Thái', 59, 'AVAILABLE'),
-(2, 1, 'Nước lẩu Kim Chi Hàn Quốc', 'https://images.unsplash.com/photo-1583224994559-4d78e7a9ff68?w=600&auto=format&fit=crop',  99000,  'Vị cay nồng đậm đà chuẩn vị Hàn',    58, 'AVAILABLE'),
-(3, 1, 'Nước lẩu Nấm thanh vị',    'https://images.unsplash.com/photo-1547592180-85f173990554?w=600&auto=format&fit=crop',     79000,  'Hương vị thanh ngọt, bổ dưỡng',      300, 'AVAILABLE'),
-(4, 2, 'Ba chỉ bò Mỹ nhúng lẩu',   'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=600&auto=format&fit=crop',  129000, 'Thịt ba chỉ bò Mỹ vân mỡ đều ngon',  53, 'AVAILABLE'),
-(5, 2, 'Bò Wagyu Nhật Bản',        'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop',    259000, 'Thịt bò Wagyu cao cấp mềm mịn',       0,  'OUT_OF_STOCK'),
-(6, 3, 'Tôm sú tươi sống',         'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=600&auto=format&fit=crop',  149000, 'Tôm sú tươi nhúng lẩu giòn ngọt',    45, 'AVAILABLE'),
-(7, 3, 'Mực ống tươi',             'https://images.unsplash.com/photo-1559694097-0af00d977e34?w=600&auto=format&fit=crop',    109000, 'Mực ống tươi được làm sạch sẵn',     40, 'AVAILABLE'),
-(8, 4, 'Nấm kim châm tươi',        'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=600&auto=format&fit=crop',    39000,  'Nấm kim châm trắng giòn',            50, 'AVAILABLE'),
-(9, 4, 'Rau muống nhặt sẵn',       'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=600&auto=format&fit=crop',  25000,  'Rau muống xanh tươi',               50, 'AVAILABLE'),
-(10, 5, 'Coca-Cola ướp lạnh lon',  'https://images.unsplash.com/photo-1624552184280-9e9b8a56f12c?w=600&auto=format&fit=crop', 15000,  'Lon 330ml giải khát cực đã',         50, 'AVAILABLE'),
-(11, 5, 'Bia Tiger lon 330ml',     'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=600&auto=format&fit=crop', 25000,  'Bia Tiger mát lạnh',                50, 'AVAILABLE');
+(1, 1, 'Nước lẩu Thái chua cay',    'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=600&auto=format&fit=crop',    89000,  'Vị chua cay nồng nàn chuẩn vị Thái', 50, 'AVAILABLE'),
+(2, 1, 'Nước lẩu Kim Chi Hàn Quốc',  'https://images.unsplash.com/photo-1583224994559-4d78e7a9ff68?w=600&auto=format&fit=crop',  99000,  'Vị cay nồng đậm đà chuẩn vị Hàn',    50, 'AVAILABLE'),
+(3, 1, 'Nước lẩu Nấm thanh vị',     'https://images.unsplash.com/photo-1547592180-85f173990554?w=600&auto=format&fit=crop',     79000,  'Hương vị thanh ngọt, bổ dưỡng',      300, 'AVAILABLE'),
+(4, 2, 'Ba chỉ bò Mỹ nhúng lẩu',    'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=600&auto=format&fit=crop',  129000, 'Thịt ba chỉ bò Mỹ vân mỡ đều ngon',  50, 'AVAILABLE'),
+(5, 2, 'Bò Wagyu Nhật Bản',         'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop',    259000, 'Thịt bò Wagyu cao cấp mềm mịn',       0,  'OUT_OF_STOCK'),
+(6, 3, 'Tôm sú tươi sống',          'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=600&auto=format&fit=crop',  149000, 'Tôm sú tươi nhúng lẩu giòn ngọt',    45, 'AVAILABLE'),
+(7, 3, 'Mực ống tươi',              'https://images.unsplash.com/photo-1559694097-0af00d977e34?w=600&auto=format&fit=crop',    109000, 'Mực ống tươi được làm sạch sẵn',     40, 'AVAILABLE'),
+(8, 4, 'Nấm kim châm tươi',         'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=600&auto=format&fit=crop',    39000,  'Nấm kim châm trắng giòn',            50, 'AVAILABLE'),
+(9, 4, 'Rau muống nhặt sẵn',        'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=600&auto=format&fit=crop',  25000,  'Rau muống xanh tươi',               50, 'AVAILABLE'),
+(10, 5, 'Coca-Cola ướp lạnh lon',   'https://images.unsplash.com/photo-1624552184280-9e9b8a56f12c?w=600&auto=format&fit=crop', 15000,  'Lon 330ml giải khát cực đã',         50, 'AVAILABLE'),
+(11, 5, 'Bia Tiger lon 330ml',      'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=600&auto=format&fit=crop', 25000,  'Bia Tiger mát lạnh',                50, 'AVAILABLE');
 
 -- ---------------------------------------------------------
 -- table_types: REGULAR & VIP
@@ -227,14 +226,14 @@ INSERT INTO restaurant_tables (id, table_number, table_type_id, status) VALUES
 (8, 'T05', 1, 'EMPTY');
 
 -- ---------------------------------------------------------
--- bookings: Mốc ngày giờ hợp lệ từ ngày hiện tại 2026-07-27 tới tương lai
+-- bookings: Các mốc đặt bàn phục vụ kiểm thử đủ các trạng thái PENDING, CONFIRMED, SEATED, CANCELLED
 -- ---------------------------------------------------------
-INSERT INTO bookings (id, account_id, customer_name, customer_phone, booking_date, booking_time, table_type_id, assigned_table_id, special_notes, status, created_at) VALUES
-(1, 4, 'Phạm Thu Hà',   '0911111111', '2026-07-27', '18:30:00', 3, NULL, 'Sinh nhật, cần không gian VIP',      'PENDING',   '2026-07-27 08:00:00'),
-(2, 5, 'Đỗ Minh Khang', '0922222222', '2026-07-27', '19:30:00', 2, NULL, 'Yêu cầu ghế trẻ em',                 'CONFIRMED', '2026-07-27 09:15:00'),
-(3, 6, 'Vũ Ngọc Lan',   '0933333333', '2026-07-28', '12:00:00', 3, NULL, 'Tiệc gia đình cuối tuần',            'CONFIRMED', '2026-07-27 09:30:00'),
-(4, 7, 'Bùi Anh Tuấn',  '0944444444', '2026-07-27', '11:30:00', 3, 6,    'Khách đã tới, nhận bàn V02',          'SEATED',    '2026-07-27 10:00:00'),
-(5, 4, 'Phạm Thu Hà',   '0911111111', '2026-07-29', '20:00:00', 1, NULL, 'Khách báo bận hủy đơn',               'CANCELLED', '2026-07-27 10:15:00');
+INSERT INTO bookings (id, account_id, customer_name, customer_phone, booking_date, booking_time, table_type_id, restaurant_table_id, special_notes, status, created_at) VALUES
+(1, 4, 'Phạm Thu Hà',   '0911111111', '2026-07-28', '18:30:00', 3, NULL, 'Sinh nhật, cần không gian VIP',      'PENDING',   '2026-07-28 08:00:00'),
+(2, 5, 'Đỗ Minh Khang', '0922222222', '2026-07-28', '19:30:00', 2, NULL, 'Yêu cầu ghế trẻ em',                 'CONFIRMED', '2026-07-28 09:15:00'),
+(3, 6, 'Vũ Ngọc Lan',   '0933333333', '2026-07-29', '12:00:00', 3, 5,    'Tiệc gia đình cuối tuần, gán bàn V01', 'CONFIRMED', '2026-07-28 09:30:00'),
+(4, 7, 'Bùi Anh Tuấn',  '0944444444', '2026-07-28', '11:30:00', 3, 6,    'Khách đã tới, nhận bàn V02',          'SEATED',    '2026-07-28 10:00:00'),
+(5, 4, 'Phạm Thu Hà',   '0911111111', '2026-07-30', '20:00:00', 1, NULL, 'Khách báo bận hủy đơn',               'CANCELLED', '2026-07-28 10:15:00');
 
 -- ---------------------------------------------------------
 -- booking_preorders: món đặt trước gắn với các booking mẫu
@@ -251,13 +250,13 @@ INSERT INTO booking_preorders (booking_id, dish_id, quantity) VALUES
 (4, 4, 3);   -- Booking 4: 3 Phần ba chỉ bò Mỹ
 
 -- ---------------------------------------------------------
--- orders: 4 đơn gọi món tại bàn
+-- orders: các đơn gọi món tại bàn
 -- ---------------------------------------------------------
 INSERT INTO orders (id, booking_id, account_id, table_id, order_type, status, created_at) VALUES
-(1, 4, 2, 6, 'DINE_IN', 'PROCESSING', '2026-07-27 11:35:00'),  -- Đơn từ Booking 4, Bàn V02 (SERVING)
-(2, NULL, 3, 3, 'DINE_IN', 'PROCESSING', '2026-07-27 10:45:00'),  -- Đơn vãng lai Bàn T03 (SERVING)
-(3, NULL, 2, 2, 'DINE_IN', 'COMPLETED',  '2026-07-27 09:00:00'),  -- Đơn đã hoàn tất thanh toán Bàn T02 (DIRTY)
-(4, NULL, 3, 4, 'DINE_IN', 'CANCELLED',  '2026-07-27 08:30:00');  -- Đơn hủy Bàn T04
+(1, 4, 7, 6, 'DINE_IN', 'PROCESSING', '2026-07-28 11:35:00'),  -- Đơn từ Booking 4, Bàn V02 (SERVING)
+(2, NULL, 5, 3, 'DINE_IN', 'PROCESSING', '2026-07-28 10:45:00'),  -- Đơn vãng lai Bàn T03 (SERVING)
+(3, NULL, 4, 2, 'DINE_IN', 'COMPLETED',  '2026-07-28 09:00:00'),  -- Đơn đã hoàn tất thanh toán Bàn T02 (DIRTY)
+(4, NULL, 6, 4, 'DINE_IN', 'CANCELLED',  '2026-07-28 08:30:00');  -- Đơn hủy Bàn T04
 
 -- ---------------------------------------------------------
 -- order_items: chi tiết món ăn trong đơn
@@ -275,10 +274,20 @@ INSERT INTO order_items (id, order_id, dish_id, quantity, actual_price) VALUES
 (10, 4, 1, 1, 89000);
 
 -- ---------------------------------------------------------
--- invoices: Hóa đơn thanh toán cho đơn 3
+-- invoices: Hóa đơn thanh toán mẫu
 -- ---------------------------------------------------------
 INSERT INTO invoices (id, order_id, total_amount, final_amount, payment_method, payment_status, created_at) VALUES
-(1, 3, 258000, 245000, 'CASH', 'PAID', '2026-07-27 09:45:00');
+(1, 3, 258000, 258000, 'CASH', 'PAID', '2026-07-28 09:45:00'),
+(2, 1, 382000, 382000, 'BANK_TRANSFER', 'UNPAID', '2026-07-28 12:00:00');
+
+-- ---------------------------------------------------------
+-- feedbacks: Ý kiến đóng góp & phản hồi từ khách hàng
+-- ---------------------------------------------------------
+INSERT INTO feedbacks (id, account_id, dish_id, content, reply, created_at) VALUES
+(1, 4, 1, 'Nước lẩu Thái rất vừa vị chua cay, nguyên liệu nhúng tươi ngon!', 'Cảm ơn chị Thu Hà đã ủng hộ nhà hàng Lẩu Tứ Quý! Rất hân hạnh được phục vụ chị.', '2026-07-27 12:30:00'),
+(2, 5, 4, 'Thịt ba chỉ bò Mỹ mềm, ngon ngọt. Nhân viên phục vụ nhiệt tình!', 'Cảm ơn anh Khang! Nhà hàng luôn nỗ lực đem lại trải nghiệm tuyệt vời nhất cho quý khách.', '2026-07-27 15:45:00'),
+(3, 6, NULL, 'Không gian nhà hàng đẹp, thoáng mát nhưng bãi đỗ xe giờ cao điểm hơi chật.', NULL, '2026-07-28 08:30:00'),
+(4, 7, 7, 'Mực ống tươi nhúng lẩu giòn ngọt, chế biến nhanh!', NULL, '2026-07-28 09:00:00');
 
 -- =========================================================
 -- HẾT FILE — sẵn sàng import bằng: mysql -u root -p < lautuquy_db_schema.sql

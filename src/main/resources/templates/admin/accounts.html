@@ -136,22 +136,6 @@
                 </div>
             </div>
 
-            <!-- Bulk Actions Bar -->
-            <div id="bulk-actions-bar" style="display:none; align-items:center; justify-content:space-between; background:var(--clr-surface-card); padding:10px 16px; border-radius:8px; border:1px solid var(--clr-border-light); margin-bottom:16px; box-shadow:var(--shadow-sm);">
-                <div style="font-size:0.85rem; font-weight:600; color:var(--clr-text-primary); display:flex; align-items:center; gap:8px;">
-                    <i class="bi bi-check2-square" style="color:var(--clr-gold); font-size:1.1rem;"></i>
-                    <span>Đã chọn <strong id="selected-count-badge" style="color:var(--clr-gold); font-size:1rem;">0</strong> tài khoản</span>
-                </div>
-                <div style="display:flex; gap:10px;">
-                    <button type="button" id="btn-bulk-lock" class="btn btn-danger btn-sm">
-                        <i class="bi bi-lock-fill"></i> Khóa tất cả đã chọn
-                    </button>
-                    <button type="button" id="btn-bulk-unlock" class="btn btn-success btn-sm">
-                        <i class="bi bi-unlock-fill"></i> Mở khóa tất cả đã chọn
-                    </button>
-                </div>
-            </div>
-
             <!-- Accounts Table -->
             <div class="card">
                 <div class="card-header">
@@ -164,9 +148,6 @@
                     <table class="table" id="accounts-table">
                         <thead>
                             <tr>
-                                <th style="width:36px; text-align:center;">
-                                    <input type="checkbox" id="select-all-accounts" style="cursor:pointer; transform:scale(1.1);"/>
-                                </th>
                                 <th>#</th>
                                 <th>Tên đăng nhập</th>
                                 <th>Họ và tên</th>
@@ -180,12 +161,6 @@
                         </thead>
                         <tbody>
                             <tr th:each="account, iter : ${accounts}" th:id="'account-row-' + ${account.id}">
-                                <td style="text-align:center;">
-                                    <input type="checkbox" class="account-select-checkbox"
-                                           th:value="${account.id}"
-                                           th:disabled="${account.username == #authentication.name && account.role.name() == 'ADMIN'}"
-                                           style="cursor:pointer; transform:scale(1.1);"/>
-                                </td>
                                 <td th:text="${iter.index + 1}"
                                     style="color:var(--clr-text-muted); font-size:0.8rem;"></td>
                                 <td>
@@ -229,7 +204,7 @@
                                                 type="button" class="btn btn-danger btn-sm btn-lock-toggle"
                                                 th:data-id="${account.id}"
                                                 data-action="lock"
-                                                data-confirm="Bạn có chắc chắn muốn khóa tài khoản này?">
+                                                data-confirm-msg="Bạn có chắc chắn muốn khóa tài khoản này?">
                                             <i class="bi bi-lock-fill"></i> Khóa
                                         </button>
                                         <!-- Nút Mở khóa (chỉ hiện nếu đang LOCKED) -->
@@ -249,7 +224,7 @@
 
                             <!-- Empty state -->
                             <tr th:if="${accounts.isEmpty()}">
-                                <td colspan="10" style="text-align:center; padding:48px; color:var(--clr-text-muted);">
+                                <td colspan="9" style="text-align:center; padding:48px; color:var(--clr-text-muted);">
                                     <i class="bi bi-inbox" style="font-size:2rem; display:block; margin-bottom:8px;"></i>
                                     Không có tài khoản nào
                                 </td>
@@ -269,139 +244,12 @@
         const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
 
-        const selectAllCheckbox = document.getElementById('select-all-accounts');
-        const bulkBar = document.getElementById('bulk-actions-bar');
-        const selectedBadge = document.getElementById('selected-count-badge');
-        const btnBulkLock = document.getElementById('btn-bulk-lock');
-        const btnBulkUnlock = document.getElementById('btn-bulk-unlock');
-
-        function updateBulkBar() {
-            const checkedBoxes = document.querySelectorAll('.account-select-checkbox:checked');
-            const count = checkedBoxes.length;
-            if (count > 0) {
-                bulkBar.style.display = 'flex';
-                selectedBadge.textContent = count;
-            } else {
-                bulkBar.style.display = 'none';
-                selectedBadge.textContent = '0';
-            }
-
-            const availableCheckboxes = document.querySelectorAll('.account-select-checkbox:not(:disabled)');
-            if (selectAllCheckbox) {
-                selectAllCheckbox.checked = availableCheckboxes.length > 0 && checkedBoxes.length === availableCheckboxes.length;
-            }
-        }
-
-        if (selectAllCheckbox) {
-            selectAllCheckbox.addEventListener('change', () => {
-                const isChecked = selectAllCheckbox.checked;
-                document.querySelectorAll('.account-select-checkbox:not(:disabled)').forEach(cb => {
-                    cb.checked = isChecked;
-                });
-                updateBulkBar();
-            });
-        }
-
-        document.addEventListener('change', (e) => {
-            if (e.target.classList.contains('account-select-checkbox')) {
-                updateBulkBar();
-            }
-        });
-
-        async function handleBulkAction(action) {
-            const checkedBoxes = Array.from(document.querySelectorAll('.account-select-checkbox:checked'));
-            const ids = checkedBoxes.map(cb => parseInt(cb.value, 10));
-
-            if (ids.length === 0) {
-                showToast('Vui lòng chọn ít nhất một tài khoản.', 'danger');
-                return;
-            }
-
-            const actionText = action === 'bulk-lock' ? 'khóa' : 'mở khóa';
-            if (!confirm(`Bạn có chắc chắn muốn ${actionText} ${ids.length} tài khoản đã chọn?`)) {
-                return;
-            }
-
-            try {
-                const headers = { 'Content-Type': 'application/json' };
-                if (csrfToken && csrfHeader) {
-                    headers[csrfHeader] = csrfToken;
-                }
-
-                const response = await fetch(`/admin/accounts/${action}`, {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify(ids)
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    showToast(data.message, 'success');
-
-                    ids.forEach(id => {
-                        const row = document.getElementById(`account-row-${id}`);
-                        if (!row) return;
-
-                        const statusCell = row.querySelector('.account-status-cell');
-                        const actionCell = row.querySelector('.account-action-cell');
-
-                        if (action === 'bulk-lock') {
-                            if (statusCell) {
-                                statusCell.innerHTML = `<span class="badge badge-locked"><i class="bi bi-lock-fill"></i> Bị khóa</span>`;
-                            }
-                            if (actionCell) {
-                                actionCell.innerHTML = `
-                                    <div style="display:flex; gap:8px;">
-                                        <button type="button" class="btn btn-success btn-sm btn-lock-toggle" data-id="${id}" data-action="unlock">
-                                            <i class="bi bi-unlock-fill"></i> Mở khóa
-                                        </button>
-                                    </div>`;
-                            }
-                        } else {
-                            if (statusCell) {
-                                statusCell.innerHTML = `<span class="badge badge-active"><i class="bi bi-circle-fill" style="font-size:0.5rem;"></i> Hoạt động</span>`;
-                            }
-                            if (actionCell) {
-                                actionCell.innerHTML = `
-                                    <div style="display:flex; gap:8px;">
-                                        <button type="button" class="btn btn-danger btn-sm btn-lock-toggle" data-id="${id}" data-action="lock" data-confirm="Bạn có chắc chắn muốn khóa tài khoản này?">
-                                            <i class="bi bi-lock-fill"></i> Khóa
-                                        </button>
-                                    </div>`;
-                            }
-                        }
-                    });
-
-                    const statLocked = document.getElementById('stat-locked-count');
-                    if (statLocked) {
-                        const lockedBadges = document.querySelectorAll('.account-status-cell .badge-locked').length;
-                        statLocked.textContent = lockedBadges;
-                    }
-
-                    checkedBoxes.forEach(cb => cb.checked = false);
-                    updateBulkBar();
-                } else {
-                    showToast(data.message || 'Thao tác không thành công.', 'danger');
-                }
-            } catch (err) {
-                console.error('Bulk action error:', err);
-                showToast('Có lỗi xảy ra khi thực hiện thao tác hàng loạt.', 'danger');
-            }
-        }
-
-        if (btnBulkLock) {
-            btnBulkLock.addEventListener('click', () => handleBulkAction('bulk-lock'));
-        }
-        if (btnBulkUnlock) {
-            btnBulkUnlock.addEventListener('click', () => handleBulkAction('bulk-unlock'));
-        }
-
-        // Xử lý click từng nút Khóa / Mở khóa đơn lẻ
+        // Xử lý click từng nút Khóa / Mở khóa đơn lẻ via AJAX
         document.addEventListener('click', async (e) => {
             const btn = e.target.closest('.btn-lock-toggle');
             if (!btn) return;
 
-            const confirmMsg = btn.getAttribute('data-confirm');
+            const confirmMsg = btn.getAttribute('data-confirm-msg');
             if (confirmMsg && !confirm(confirmMsg)) {
                 return;
             }
@@ -455,7 +303,7 @@
                         if (actionCell) {
                             actionCell.innerHTML = `
                                 <div style="display:flex; gap:8px;">
-                                    <button type="button" class="btn btn-danger btn-sm btn-lock-toggle" data-id="${accountId}" data-action="lock" data-confirm="Bạn có chắc chắn muốn khóa tài khoản này?">
+                                    <button type="button" class="btn btn-danger btn-sm btn-lock-toggle" data-id="${accountId}" data-action="lock" data-confirm-msg="Bạn có chắc chắn muốn khóa tài khoản này?">
                                         <i class="bi bi-lock-fill"></i> Khóa
                                     </button>
                                 </div>`;

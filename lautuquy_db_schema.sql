@@ -191,17 +191,17 @@ INSERT INTO categories (id, name, description) VALUES
 -- dishes: các món ăn (Bò Wagyu quantity = 0 -> OUT_OF_STOCK để kiểm thử)
 -- ---------------------------------------------------------
 INSERT INTO dishes (id, category_id, name, image_url, price, description, quantity, status) VALUES
-(1, 1, 'Nước lẩu Thái chua cay',    '/images/dishes/lau-thai.jpg',    89000,  'Vị chua cay nồng nàn chuẩn vị Thái', 50, 'AVAILABLE'),
-(2, 1, 'Nước lẩu Kim Chi Hàn Quốc',  '/images/dishes/lau-kim-chi.jpg', 99000,  'Vị cay nồng đậm đà chuẩn vị Hàn',    50, 'AVAILABLE'),
-(3, 1, 'Nước lẩu Nấm thanh vị',     '/images/dishes/lau-nam.jpg',     79000,  'Hương vị thanh ngọt, bổ dưỡng',      300, 'AVAILABLE'),
-(4, 2, 'Ba chỉ bò Mỹ nhúng lẩu',    '/images/dishes/bo-my.jpg',       129000, 'Thịt ba chỉ bò Mỹ vân mỡ đều ngon',  50, 'AVAILABLE'),
-(5, 2, 'Bò Wagyu Nhật Bản',         '/images/dishes/bo-wagyu.jpg',    259000, 'Thịt bò Wagyu cao cấp mềm mịn',       0,  'OUT_OF_STOCK'),
-(6, 3, 'Tôm sú tươi sống',          '/images/dishes/tom-su.jpg',      149000, 'Tôm sú tươi nhúng lẩu giòn ngọt',    45, 'AVAILABLE'),
-(7, 3, 'Mực ống tươi',              '/images/dishes/muc-ong.jpg',      109000, 'Mực ống tươi được làm sạch sẵn',     40, 'AVAILABLE'),
-(8, 4, 'Nấm kim châm tươi',         '/images/dishes/nam-kim-cham.jpg', 39000,  'Nấm kim châm trắng giòn',            50, 'AVAILABLE'),
-(9, 4, 'Rau muống nhặt sẵn',        '/images/dishes/rau-muong.jpg',   25000,  'Rau muống xanh tươi',               50, 'AVAILABLE'),
-(10, 5, 'Coca-Cola ướp lạnh lon',   '/images/dishes/coca.jpg',        15000,  'Lon 330ml giải khát cực đã',         50, 'AVAILABLE'),
-(11, 5, 'Bia Tiger lon 330ml',      '/images/dishes/tiger.jpg',       25000,  'Bia Tiger mát lạnh',                50, 'AVAILABLE');
+(1, 1, 'Nước lẩu Thái chua cay',    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfujZT1HXqNYwvqhrNk-B5J6kp-tetczHN-RtCZyIw8A&s=10',    89000,  'Vị chua cay nồng nàn chuẩn vị Thái', 50, 'AVAILABLE'),
+(2, 1, 'Nước lẩu Kim Chi Hàn Quốc',  'https://cdn.tgdd.vn/2021/10/CookDish/cach-nau-lau-kim-chi-hai-san-han-quoc-chua-cay-dam-da-huong-avt-1200x676.jpeg', 99000,  'Vị cay nồng đậm đà chuẩn vị Hàn',    50, 'AVAILABLE'),
+(3, 1, 'Nước lẩu Nấm thanh vị',     'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTcwnEl-3fkU1BNV9qPuQSJwwWsU0dJO_z6K9FOGE9PNw&s=10',     79000,  'Hương vị thanh ngọt, bổ dưỡng',      300, 'AVAILABLE'),
+(4, 2, 'Ba chỉ bò Mỹ nhúng lẩu',    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSuGNWDOzWlegPABRhxvseu9ogGkbgw-I3x6EhrbrxiUw&s=10',       129000, 'Thịt ba chỉ bò Mỹ vân mỡ đều ngon',  50, 'AVAILABLE'),
+(5, 2, 'Bò Wagyu Nhật Bản',         'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMpfvnUBKiwU4oO1GdPzHiGn_jHAnt4gjs9QDzW0Xr9A&s=10',    259000, 'Thịt bò Wagyu cao cấp mềm mịn',       0,  'OUT_OF_STOCK'),
+(6, 3, 'Tôm sú tươi sống',          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZJQZiNeqUEtIwl5ulyfNpnEhjxENKzh3qyTuWZtUIdA&s=10',      149000, 'Tôm sú tươi nhúng lẩu giòn ngọt',    45, 'AVAILABLE'),
+(7, 3, 'Mực ống tươi',              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRi90laIXExnyQV6WBVw6VKd1s4WB78SrbKkU-4PK9uWpQbmb0cKRZbiSE&s=10',      109000, 'Mực ống tươi được làm sạch sẵn',     40, 'AVAILABLE'),
+(8, 4, 'Nấm kim châm tươi',         'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQT2hSqYCx-FG7T3jgPRXwcpUMjlX0UKlxC4YaHaqQtQA&s=10', 39000,  'Nấm kim châm trắng giòn',            50, 'AVAILABLE'),
+(9, 4, 'Rau muống nhặt sẵn',        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSskdgFd6yCB2qch-dokLpxRR27tgvQoG7ZZb5DikDW9w&s=10',   25000,  'Rau muống xanh tươi',               50, 'AVAILABLE'),
+(10, 5, 'Coca-Cola ướp lạnh lon',   'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2-yC3xCqrD36sj6oGwVB-tb2Vixpua3bmOCLAZ5r6sA&s=10',        15000,  'Lon 330ml giải khát cực đã',         50, 'AVAILABLE'),
+(11, 5, 'Bia Tiger lon 330ml',      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTg3L0uDWR2n7j5Eh_W4RZ_48S_3nRx3GWPBRp6InrKLQ&s=10',       25000,  'Bia Tiger mát lạnh',                50, 'AVAILABLE');
 
 -- ---------------------------------------------------------
 -- table_types: REGULAR & VIP

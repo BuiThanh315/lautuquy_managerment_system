@@ -55,6 +55,10 @@ public class BookingController {
             seatedBooking = bookingService.getActiveSeatedBooking(principal.getName());
         }
 
+        if (seatedBooking != null) {
+            return "redirect:/customer/order";
+        }
+
         model.addAttribute("bookingRequest", bookingRequest);
         model.addAttribute("tableTypes", tableService.getAllTableTypes());
         List<Dish> availableDishes = dishService.getAllDishes();

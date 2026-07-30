@@ -152,6 +152,7 @@
                                     </td>
                                     <td th:text="${b.specialNotes ?: '—'}" style="padding:8px 6px; max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></td>
                                     <td style="padding:8px 6px;">
+                                        <span th:if="${b.isOverdue()}" class="badge" style="padding:3px 6px; font-size:0.7rem; background:#ef4444; color:#fff; margin-bottom:4px; display:inline-block;">Quá hạn</span>
                                         <span th:switch="${b.status.name()}">
                                             <span th:case="'PENDING'" class="badge badge-pending" style="padding:3px 6px; font-size:0.7rem;">Chờ duyệt</span>
                                             <span th:case="'CONFIRMED'" class="badge badge-confirmed" style="padding:3px 6px; font-size:0.7rem;">Đã xác nhận</span>
@@ -162,8 +163,8 @@
                                     <td style="padding:8px 6px;">
                                         <div style="display:flex; flex-direction:column; gap:6px;">
 
-                                            <!-- PENDING -> DUYỆT -->
-                                            <form th:if="${b.status.name() == 'PENDING'}"
+                                            <!-- PENDING -> DUYỆT (Chỉ khi chưa quá hạn) -->
+                                            <form th:if="${b.status.name() == 'PENDING' && !b.isOverdue()}"
                                                 th:action="@{/staff/bookings/{id}/confirm(id=${b.id})}" method="post" style="display:inline;">
                                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                                 <button type="submit" class="btn btn-success btn-sm" style="width:100%;">
@@ -171,21 +172,14 @@
                                                 </button>
                                             </form>
 
-                                            <!-- CONFIRMED -> NHẬN BÀN -->
-                                            <form th:if="${b.status.name() == 'CONFIRMED'}"
+                                            <!-- CONFIRMED -> NHẬN BÀN (Chỉ khi chưa quá hạn) -->
+                                            <form th:if="${b.status.name() == 'CONFIRMED' && !b.isOverdue()}"
                                                 th:action="@{/staff/bookings/{id}/receive(id=${b.id})}" method="post" style="display:inline;">
                                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                                 <button type="submit" class="btn btn-success btn-sm" style="width:100%;">
                                                     <i class="bi bi-person-check-fill"></i> Nhận bàn
                                                 </button>
                                             </form>
-
-                                            <!-- PENDING hoặc CONFIRMED -> XẾP BÀN -->
-                                            <button th:if="${b.status.name() == 'PENDING' || b.status.name() == 'CONFIRMED'}"
-                                                type="button" class="btn btn-primary btn-sm" style="width:100%;"
-                                                th:onclick="'openSeatModal(' + ${b.id} + ', ' + ${b.tableType.id} + ')'">
-                                                <i class="bi bi-box-arrow-in-right"></i> Xếp bàn
-                                            </button>
 
                                             <!-- SEATED -> HIỂN THỊ NÚT "ĐÃ THANH TOÁN" KHI KHÁCH ĐÃ GỬI YÊU CẦU THANH TOÁN -->
                                             <form th:if="${b.status.name() == 'SEATED' && invoiceMap != null && invoiceMap.containsKey(b.id)}"

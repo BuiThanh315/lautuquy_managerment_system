@@ -38,7 +38,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Tài nguyên tĩnh và trang công khai — cho phép tất cả
                 .requestMatchers("/static/**", "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-                .requestMatchers("/", "/auth/login", "/auth/register", "/error/**").permitAll()
+                .requestMatchers("/", "/landing", "/customer/landing", "/auth/login", "/auth/register", "/error/**").permitAll()
                 // Vùng ADMIN — chỉ ROLE_ADMIN
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // Vùng STAFF — ROLE_STAFF và ROLE_ADMIN

@@ -21,9 +21,9 @@ public class HomeController {
             } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_STAFF"))) {
                 return "redirect:/staff/bookings";
             } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"))) {
-                return "redirect:/customer/menu";
+                return "redirect:/landing";
             }
         }
-        return "redirect:/auth/login";
+        return "redirect:/landing";
     }
 }

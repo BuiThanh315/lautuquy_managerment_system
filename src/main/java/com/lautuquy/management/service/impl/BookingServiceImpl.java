@@ -218,6 +218,17 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getStatus() == Booking.Status.SEATED) {
             throw new IllegalStateException("Đơn đã nhận bàn (SEATED) không thể hủy.");
         }
+
+        // Tự động thêm ghi chú "Đơn quá hạn" nếu đơn bị quá hạn 30 phút nhưng chưa nhận bàn
+        if (booking.isOverdue()) {
+            String currentNotes = booking.getSpecialNotes();
+            if (currentNotes == null || currentNotes.isBlank()) {
+                booking.setSpecialNotes("Đơn quá hạn");
+            } else if (!currentNotes.contains("Đơn quá hạn")) {
+                booking.setSpecialNotes(currentNotes + " (Đơn quá hạn)");
+            }
+        }
+
         booking.setStatus(Booking.Status.CANCELLED);
         
         // Nếu đã gán bàn, giải phóng bàn về EMPTY

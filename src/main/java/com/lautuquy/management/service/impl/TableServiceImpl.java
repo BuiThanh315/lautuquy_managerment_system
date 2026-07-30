@@ -101,6 +101,9 @@ public class TableServiceImpl implements TableService {
     @Transactional
     public void deleteTable(Long id) {
         RestaurantTable table = getTableById(id);
+        if (table.getStatus() != RestaurantTable.Status.EMPTY) {
+            throw new IllegalStateException("Chỉ có thể xóa bàn ăn khi ở trạng thái Trống (EMPTY).");
+        }
         restaurantTableRepository.delete(table);
     }
 

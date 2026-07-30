@@ -31,12 +31,20 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     @Transactional
     public Feedback createFeedback(String username, Long dishId, String content) {
+        return createGuestOrUserFeedback(username, dishId, content);
+    }
+
+    @Override
+    @Transactional
+    public Feedback createGuestOrUserFeedback(String username, Long dishId, String content) {
         if (content == null || content.trim().isEmpty()) {
             throw new IllegalArgumentException("Nội dung phản hồi không được để trống.");
         }
 
-        Account account = accountRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Tài khoản", username));
+        Account account = null;
+        if (username != null && !username.trim().isEmpty()) {
+            account = accountRepository.findByUsername(username).orElse(null);
+        }
 
         Dish dish = null;
         if (dishId != null && dishId > 0) {

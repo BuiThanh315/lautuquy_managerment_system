@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Nhà hàng Lẩu Tứ Quý — Nghệ Thuật Lẩu Dưỡng Sinh &amp; Ẩm Thực Thượng Hạng. Nước lẩu đặc quyền ninh 8 tiếng, thịt bò Mỹ cao cấp, hải sản tươi sống nhập mới mỗi ngày."/>
+    <title th:text="${pageTitle ?: 'Trang Chủ — Lẩu Tứ Quý'}">Trang Chủ — Lẩu Tứ Quý</title>
+
+    <!-- Design System CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+
+    <!-- ================================================================
+         EMBEDDED STYLES FOR GUARANTEED MULTI-COLUMN GRID & FEEDBACK SECTION
+         ================================================================ -->
+    <style>
+        html {
+            scroll-behavior: smooth;
+            box-sizing: border-box;
+        }
+
+        *, *::before, *::after {
+            box-sizing: inherit;
+        }
+
+        body.landing-body {
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: var(--font-body, 'Be Vietnam Pro', sans-serif);
+            background-color: var(--clr-bg, #FBF5EA);
+            color: var(--clr-text-primary, #2d0a06);
+            overflow-x: hidden;
+        }
+
+        /* Top Header Navigation */
+        .landing-header {
+            position: sticky;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(94, 0, 6, 0.95);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            border-bottom: 1px solid rgba(238, 217, 185, 0.15);
+        }
+
+        .landing-nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .landing-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .landing-brand-name {
+            font-family: var(--font-display, 'Playfair Display', serif);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #EED9B9;
+            letter-spacing: 0.5px;
+        }
+
+        .landing-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .landing-nav-links a {
+            color: #f7eedd;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: color 0.2s ease;
+        }
+
+        .landing-nav-links a:hover {
+            color: #e96839;
+        }
+
+        .landing-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Hero Section */
+        .landing-hero {
+            position: relative;
+            min-height: 85vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(62, 0, 4, 0.90) 0%, rgba(94, 0, 6, 0.84) 40%, rgba(155, 15, 6, 0.78) 100%),
+                        url('https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+            color: #ffffff;
+            text-align: center;
+            padding: 80px 24px;
+        }
+
+        .landing-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .gold-badge {
+            background: linear-gradient(135deg, rgba(213, 62, 15, 0.25) 0%, rgba(155, 15, 6, 0.35) 100%);
+            border: 1px solid rgba(238, 217, 185, 0.5);
+            color: #EED9B9;
+            padding: 6px 16px;
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .landing-hero-title {
+            font-family: var(--font-display, 'Playfair Display', serif);
+            font-size: clamp(2.4rem, 5vw, 3.8rem);
+            font-weight: 800;
+            line-height: 1.18;
+            color: #ffffff;
+            margin: 0 0 20px 0;
+            text-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        }
+
+        .text-gold-gradient {
+            background: linear-gradient(135deg, #FFF5E1 0%, #EED9B9 50%, #D53E0F 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .landing-hero-subtitle {
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            color: #f7eedd;
+            line-height: 1.6;
+            margin: 0 auto 36px auto;
+            max-width: 700px;
+        }
+
+        .landing-hero-cta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-hero-primary {
+            background: linear-gradient(135deg, #D53E0F 0%, #9B0F06 100%);
+            color: #ffffff !important;
+            padding: 14px 34px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            border-radius: 9999px;
+            border: none;
+            box-shadow: 0 6px 24px rgba(213, 62, 15, 0.4);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-hero-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(213, 62, 15, 0.5);
+        }
+
+        .btn-hero-secondary {
+            background: rgba(238, 217, 185, 0.15);
+            color: #EED9B9 !important;
+            border: 1px solid #EED9B9;
+            padding: 14px 34px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            border-radius: 9999px;
+            backdrop-filter: blur(4px);
+            transition: background 0.2s ease, transform 0.2s ease;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-hero-secondary:hover {
+            background: rgba(238, 217, 185, 0.3);
+            transform: translateY(-3px);
+        }
+
+        /* Hero Highlights Bar (4 columns grid) */
+        .hero-highlights-bar {
+            max-width: 1100px;
+            margin: 44px auto 0 auto;
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 16px !important;
+            padding: 0 16px;
+            width: 100%;
+        }
+
+        .hero-highlight-item {
+            background: rgba(62, 0, 4, 0.65);
+            border: 1px solid rgba(238, 217, 185, 0.25);
+            backdrop-filter: blur(12px);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-align: left;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .hero-highlight-item:hover {
+            transform: translateY(-4px);
+            border-color: #D53E0F;
+            background: rgba(94, 0, 6, 0.85);
+        }
+
+        .hero-highlight-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .hero-highlight-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #EED9B9;
+            margin-bottom: 2px;
+        }
+
+        .hero-highlight-sub {
+            font-size: 0.78rem;
+            color: #f7eedd;
+            opacity: 0.8;
+        }
+
+        /* Category Navigation Pill Sticky */
+        .category-pill-sticky {
+            position: sticky;
+            top: 68px;
+            z-index: 900;
+            background: #FBF5EA;
+            padding: 16px 24px;
+            box-shadow: 0 4px 16px rgba(94, 0, 6, 0.06);
+            border-bottom: 1px solid rgba(155, 15, 6, 0.15);
+        }
+
+        .category-pill-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .pill-item {
+            white-space: nowrap;
+            padding: 10px 22px;
+            border-radius: 9999px;
+            background: #FFFFFF;
+            color: #2d0a06;
+            font-weight: 600;
+            font-size: 0.92rem;
+            border: 1.5px solid rgba(155, 15, 6, 0.18);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .pill-item:hover,
+        .pill-item.active {
+            background: #5E0006;
+            color: #EED9B9;
+            border-color: #5E0006;
+            box-shadow: 0 2px 8px rgba(94, 0, 6, 0.12);
+        }
+
+        /* Search Bar Wrapper */
+        .menu-search-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 24px 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .search-box-input-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .search-box-input-wrap i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9a7060;
+            font-size: 1.1rem;
+        }
+
+        .dish-search-input {
+            width: 100%;
+            padding: 12px 18px 12px 46px;
+            border-radius: 9999px;
+            border: 1.5px solid rgba(155, 15, 6, 0.18);
+            background: #FFFFFF;
+            color: #2d0a06;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .dish-search-input:focus {
+            border-color: #D53E0F;
+            box-shadow: 0 0 0 3px rgba(213, 62, 15, 0.15);
+        }
+
+        /* Menu Section & Container */
+        .menu-section {
+            scroll-margin-top: 140px;
+            padding: 50px 24px;
+            width: 100%;
+        }
+
+        .menu-section.bg-alt {
+            background-color: #F7EEDC;
+        }
+
+        .menu-section.bg-white {
+            background-color: #FFFFFF;
+        }
+
+        .section-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .section-header {
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .section-title {
+            font-family: var(--font-display, 'Playfair Display', serif);
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #5E0006;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0;
+        }
+
+        .section-subtitle {
+            color: #9a7060;
+            font-size: 1rem;
+            margin-top: 6px;
+        }
+
+        /* MULTI-COLUMN DISH GRID */
+        .landing-dish-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)) !important;
+            gap: 24px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        /* DISH CARD & IMAGE CONSTRAINTS */
+        .landing-dish-card {
+            background: #FFFFFF !important;
+            border-radius: 16px !important;
+            border: 1px solid rgba(155, 15, 6, 0.15) !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+            box-shadow: 0 4px 16px rgba(94, 0, 6, 0.08) !important;
+            transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+            position: relative !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            cursor: pointer;
+        }
+
+        .landing-dish-card:hover {
+            transform: translateY(-8px) !important;
+            box-shadow: 0 12px 32px rgba(94, 0, 6, 0.18) !important;
+        }
+
+        .landing-dish-img-wrap {
+            position: relative !important;
+            width: 100% !important;
+            height: 210px !important;
+            max-height: 210px !important;
+            overflow: hidden !important;
+            background-color: #F7EEDC !important;
+        }
+
+        .landing-dish-img {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            object-fit: cover !important;
+            display: block !important;
+            transition: transform 0.4s ease !important;
+        }
+
+        .landing-dish-card:hover .landing-dish-img {
+            transform: scale(1.08) !important;
+        }
+
+        .landing-category-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(94, 0, 6, 0.85);
+            color: #EED9B9;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border-radius: 9999px;
+            backdrop-filter: blur(4px);
+            z-index: 5;
+        }
+
+        .badge-hot {
+            background: linear-gradient(135deg, #D53E0F 0%, #9B0F06 100%);
+            color: #ffffff;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(213, 62, 15, 0.4);
+            z-index: 5;
+        }
+
+        .badge-out-of-stock {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(155, 15, 6, 0.9);
+            color: #fff;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border-radius: 6px;
+            z-index: 5;
+        }
+
+        .dish-quick-view-btn {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            background: rgba(94, 0, 6, 0.9);
+            color: #EED9B9;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: all 0.3s ease;
+            z-index: 5;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .landing-dish-card:hover .dish-quick-view-btn {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .landing-dish-body {
+            padding: 20px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            flex: 1 !important;
+        }
+
+        .landing-dish-name {
+            font-size: 1.15rem !important;
+            font-weight: 700 !important;
+            color: #2d0a06 !important;
+            margin: 0 0 8px 0 !important;
+        }
+
+        .landing-dish-desc {
+            font-size: 0.88rem !important;
+            color: #5a1a14 !important;
+            line-height: 1.5 !important;
+            margin: 0 0 16px 0 !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 2 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+            flex: 1 !important;
+        }
+
+        .landing-dish-footer {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding-top: 14px !important;
+            border-top: 1px dashed rgba(155, 15, 6, 0.18) !important;
+        }
+
+        .landing-dish-price {
+            font-size: 1.2rem !important;
+            font-weight: 800 !important;
+            color: #D53E0F !important;
+        }
+
+        /* About Section Grid (4 columns) */
+        .landing-about-section {
+            background: linear-gradient(180deg, #F7EEDC 0%, #FBF5EA 100%);
+            padding: 80px 24px;
+        }
+
+        .about-grid {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 24px !important;
+            margin-top: 40px !important;
+            width: 100% !important;
+        }
+
+        .about-card {
+            background: #FFFFFF;
+            padding: 32px 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(155, 15, 6, 0.15);
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(94, 0, 6, 0.08);
+            transition: transform 0.25s ease;
+        }
+
+        .about-card:hover {
+            transform: translateY(-6px);
+        }
+
+        .about-icon {
+            font-size: 2.8rem;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+
+        .about-card-title {
+            font-family: var(--font-display, 'Playfair Display', serif);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #5E0006;
+            margin: 0 0 10px 0;
+        }
+
+        .about-card-desc {
+            font-size: 0.9rem;
+            color: #5a1a14;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* ================================================================
+           FEEDBACK SECTION STYLING (SCROLLABLE REVIEWS + DIRECT FORM)
+           ================================================================ */
+        .landing-feedback-section {
+            background: linear-gradient(180deg, #FBF5EA 0%, #F7EEDC 100%);
+            padding: 80px 24px;
+            scroll-margin-top: 100px;
+        }
+
+        .feedback-container-grid {
+            display: grid !important;
+            grid-template-columns: 1fr 1.25fr !important;
+            gap: 36px !important;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .feedback-form-card {
+            background: #FFFFFF;
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid rgba(155, 15, 6, 0.18);
+            box-shadow: 0 8px 30px rgba(94, 0, 6, 0.08);
+        }
+
+        .feedback-form-title {
+            font-family: var(--font-display, 'Playfair Display', serif);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #5E0006;
+            margin: 0 0 6px 0;
+        }
+
+        .feedback-form-subtitle {
+            font-size: 0.88rem;
+            color: #9a7060;
+            margin-bottom: 24px;
+        }
+
+        .feedback-scroll-list {
+            max-height: 490px;
+            overflow-y: auto;
+            padding-right: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .feedback-scroll-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .feedback-scroll-list::-webkit-scrollbar-thumb {
+            background: #dfc89e;
+            border-radius: 6px;
+        }
+
+        .feedback-item-card {
+            background: #FFFFFF;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(155, 15, 6, 0.14);
+            box-shadow: 0 4px 16px rgba(94, 0, 6, 0.06);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .feedback-item-card:hover {
+            transform: translateY(-2px);
+            border-color: #D53E0F;
+        }
+
+        .feedback-author-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #5E0006 0%, #D53E0F 100%);
+            color: #EED9B9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .staff-reply-box {
+            margin-top: 12px;
+            background: #F7EEDC;
+            border-left: 3px solid #D53E0F;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            color: #2d0a06;
+        }
+
+        /* Footer */
+        .landing-footer {
+            background: #5E0006;
+            color: #EED9B9;
+            padding: 60px 24px 30px 24px;
+            border-top: 3px solid #D53E0F;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-brand-title {
+            font-family: var(--font-display, 'Playfair Display', serif);
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #EED9B9;
+            margin-bottom: 14px;
+        }
+
+        .footer-desc {
+            font-size: 0.9rem;
+            color: #f7eedd;
+            line-height: 1.6;
+            opacity: 0.85;
+            margin: 0;
+        }
+
+        .footer-links-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #EED9B9;
+            margin-bottom: 18px;
+        }
+
+        .footer-links-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .footer-links-list a {
+            color: #f7eedd;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+        }
+
+        .footer-links-list a:hover {
+            color: #e96839;
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 24px;
+            border-top: 1px solid rgba(238, 217, 185, 0.15);
+            text-align: center;
+            font-size: 0.85rem;
+            color: #f7eedd;
+            opacity: 0.7;
+        }
+
+        /* Modal Overlay & Box */
+        .dish-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .dish-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .dish-modal-box {
+            background: #FFFFFF;
+            width: 100%;
+            max-width: 640px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            border: 1px solid #dfc89e;
+            transform: scale(0.92);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .dish-modal-overlay.active .dish-modal-box {
+            transform: scale(1);
+        }
+
+        .dish-modal-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            color: #ffffff;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .dish-modal-close:hover {
+            background: #9B0F06;
+        }
+
+        .dish-modal-img {
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .dish-modal-body {
+            padding: 28px;
+        }
+
+        .dish-modal-category {
+            color: #D53E0F;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .dish-modal-title {
+            font-family: var(--font-display, 'Playfair Display', serif);
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #5E0006;
+            margin: 0 0 12px 0;
+        }
+
+        .dish-modal-desc {
+            font-size: 0.95rem;
+            color: #5a1a14;
+            line-height: 1.6;
+            margin: 0 0 20px 0;
+        }
+
+        .dish-modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 18px;
+            border-top: 1px dashed rgba(155, 15, 6, 0.18);
+        }
+
+        .dish-modal-price {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #D53E0F;
+        }
+
+        /* Floating Quick Bar */
+        .floating-quick-bar {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1200;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .float-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: #ffffff;
+            text-decoration: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            transition: transform 0.25s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .float-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .float-btn-hotline {
+            background: linear-gradient(135deg, #D53E0F 0%, #9B0F06 100%);
+            animation: pulseGlow 2s infinite;
+        }
+
+        .float-btn-top {
+            background: rgba(94, 0, 6, 0.9);
+            backdrop-filter: blur(6px);
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 rgba(213, 62, 15, 0.7); }
+            70% { box-shadow: 0 0 0 14px rgba(213, 62, 15, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(213, 62, 15, 0); }
+        }
+
+        /* Mobile Breakpoints */
+        @media (max-width: 992px) {
+            .hero-highlights-bar,
+            .about-grid,
+            .feedback-container-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .footer-container {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .landing-nav-links {
+                display: none;
+            }
+            .landing-hero {
+                min-height: 65vh;
+                padding: 60px 16px;
+            }
+            .landing-dish-grid {
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+                gap: 16px !important;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-highlights-bar,
+            .about-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .landing-dish-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
+</head>
+<body class="landing-body">
+
+    <!-- ================================================================
+         1. TOP NAVIGATION HEADER
+         ================================================================ -->
+    <header class="landing-header">
+        <div class="landing-nav-container">
+            <!-- Brand Logo -->
+            <a th:href="@{/landing}" class="landing-brand">
+                <img th:src="@{/images/logo.png}" alt="Lẩu Tứ Quý Logo" class="landing-brand-logo-img" style="height: 44px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));"/>
+                <span class="landing-brand-name">
+                    Lẩu Tứ Quý <span style="font-size: 0.75rem; font-family: sans-serif; color: #dfc89e; font-weight: 500; display: block; margin-top: -4px; letter-spacing: 1px;">CUISINE &amp; HOTPOT</span>
+                </span>
+            </a>
+
+            <!-- Nav Links -->
+            <ul class="landing-nav-links">
+                <li><a href="#hero"><i class="bi bi-house-door-fill"></i> Trang Chủ</a></li>
+                <li><a href="#about"><i class="bi bi-award-fill"></i> Tinh Hoa Cuisine</a></li>
+                <li><a href="#menu"><i class="bi bi-journal-richtext"></i> Thực Đơn Thượng Hạng</a></li>
+                <li><a href="#feedback"><i class="bi bi-chat-square-heart-fill"></i> Đánh Giá Khách Hàng</a></li>
+            </ul>
+
+            <!-- Header Action Buttons -->
+            <div class="landing-header-actions">
+                <th:block sec:authorize="isAnonymous()">
+                    <a th:href="@{/auth/login}" class="btn btn-secondary btn-sm" style="border-radius: 9999px; padding: 8px 20px; font-weight: 600;">
+                        <i class="bi bi-box-arrow-in-right"></i> Đăng Nhập
+                    </a>
+                </th:block>
+                <th:block sec:authorize="isAuthenticated()">
+                    <th:block sec:authorize="hasRole('CUSTOMER')">
+                        <a th:href="@{/customer/menu}" class="btn btn-primary btn-sm" style="border-radius: 9999px; padding: 8px 20px; font-weight: 600;">
+                            <i class="bi bi-person-circle"></i> Trang Cá Nhân
+                        </a>
+                    </th:block>
+                    <th:block sec:authorize="hasRole('ADMIN')">
+                        <a th:href="@{/admin/dashboard}" class="btn btn-primary btn-sm" style="border-radius: 9999px; padding: 8px 20px; font-weight: 600;">
+                            <i class="bi bi-speedometer2"></i> Trang Quản Trị
+                        </a>
+                    </th:block>
+                    <th:block sec:authorize="hasRole('STAFF')">
+                        <a th:href="@{/staff/bookings}" class="btn btn-primary btn-sm" style="border-radius: 9999px; padding: 8px 20px; font-weight: 600;">
+                            <i class="bi bi-person-badge"></i> Quản Lý Bàn
+                        </a>
+                    </th:block>
+                </th:block>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- ================================================================
+             SECTION 1: HERO SECTION
+             ================================================================ -->
+        <section id="hero" class="landing-hero">
+            <div class="landing-hero-content">
+                <div class="gold-badge" style="margin-bottom: 24px;">
+                    <i class="bi bi-star-fill" style="color: #FFD700;"></i> NGHỆ THUẬT LẨU DƯỠNG SINH THƯỢNG HẠNG
+                </div>
+                <h1 class="landing-hero-title">
+                    Thưởng Thức <span class="text-gold-gradient">Lẩu Tứ Quý</span><br/>
+                    Hương Vị Đậm Đà, Ấm Cúng Chuẩn Vị
+                </h1>
+                <p class="landing-hero-subtitle">
+                    Hội tụ 4 vị nước lẩu đặc quyền ninh hầm hơn 8 tiếng cùng nguồn nguyên liệu bò Mỹ nhập khẩu, hải sản tươi sống và nấm quý đem lại trải nghiệm ẩm thực đẳng cấp.
+                </p>
+                <div class="landing-hero-cta">
+                    <a href="#menu" class="btn-hero-primary">
+                        <i class="bi bi-arrow-down-circle-fill"></i> Khám Phá Thực Đơn
+                    </a>
+                    <!-- Nút Đặt bàn ngay -->
+                    <button type="button" class="btn-hero-secondary">
+                        <i class="bi bi-calendar-check-fill"></i> Đặt Bàn Ngay
+                    </button>
+                </div>
+
+                <!-- Sub-Hero Highlights Bar -->
+                <div class="hero-highlights-bar">
+                    <div class="hero-highlight-item">
+                        <span class="hero-highlight-icon">🍲</span>
+                        <div>
+                            <div class="hero-highlight-title">4 Vị Nước Lẩu</div>
+                            <div class="hero-highlight-sub">Ninh hầm 8h bổ dưỡng</div>
+                        </div>
+                    </div>
+                    <div class="hero-highlight-item">
+                        <span class="hero-highlight-icon">🥩</span>
+                        <div>
+                            <div class="hero-highlight-title">Thịt Bò Mỹ Tươi</div>
+                            <div class="hero-highlight-sub">100% Nhập khẩu chọn lọc</div>
+                        </div>
+                    </div>
+                    <div class="hero-highlight-item">
+                        <span class="hero-highlight-icon">🏛️</span>
+                        <div>
+                            <div class="hero-highlight-title">Không Gian VIP</div>
+                            <div class="hero-highlight-sub">Ấm cúng &amp; Sang trọng</div>
+                        </div>
+                    </div>
+                    <div class="hero-highlight-item">
+                        <span class="hero-highlight-icon">⭐</span>
+                        <div>
+                            <div class="hero-highlight-title">Đánh Giá 4.9/5</div>
+                            <div class="hero-highlight-sub">Từ 1.200+ Khách hàng</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================
+             SECTION 2: TOÀN BỘ THỰC ĐƠN (id="menu")
+             ================================================================ -->
+        <div id="menu">
+            <!-- Sticky Category Pill Navigation -->
+            <nav class="category-pill-sticky">
+                <div class="category-pill-wrapper" id="categoryPillWrapper">
+                    <a href="#menu" class="pill-item active" onclick="filterCategory('all')">Tất Cả Món</a>
+                    <th:block th:each="group : ${categoryGroups}">
+                        <a th:href="'#' + ${group.slug}" class="pill-item" th:text="${group.category.name}" th:attr="onclick='filterCategory(\'' + ${group.slug} + '\')'">Tên Danh Mục</a>
+                    </th:block>
+                </div>
+            </nav>
+
+            <!-- Search Bar Tìm Kiếm Món Ăn -->
+            <div class="menu-search-wrapper">
+                <div class="search-box-input-wrap">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="dishSearchInput" class="dish-search-input" placeholder="Tìm kiếm món ăn (ví dụ: Lẩu Thái, Ba chỉ bò, Tôm sú...)..." onkeyup="searchDishes()"/>
+                </div>
+                <div style="font-size: 0.88rem; color: #9a7060; font-weight: 600;">
+                    <i class="bi bi-funnel-fill" style="color: #D53E0F;"></i> Lọc thực đơn trực tiếp
+                </div>
+            </div>
+
+            <!-- Render Các Danh Mục Thực Đơn -->
+            <div id="dynamicMenuContainer">
+                <th:block th:each="group, iterStat : ${categoryGroups}">
+                    <section th:id="${group.slug}"
+                             class="menu-section"
+                             th:classappend="${iterStat.odd} ? ' bg-white' : ' bg-alt'">
+                        <div class="section-container">
+                            <div class="section-header">
+                                <h2 class="section-title">
+                                    <span th:text="${group.category.name}">Danh Mục</span>
+                                </h2>
+                                <p class="section-subtitle" th:text="${group.category.description}">Mô tả danh mục sản phẩm</p>
+                            </div>
+
+                            <!-- MULTI-COLUMN DISH GRID -->
+                            <div class="landing-dish-grid">
+                                <th:block th:each="dish : ${group.dishes}">
+                                    <div class="landing-dish-card dish-item-card"
+                                         th:data-name="${dish.name}"
+                                         th:data-category="${group.category.name}"
+                                         th:data-desc="${dish.description}"
+                                         th:data-price="${#numbers.formatDecimal(dish.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"
+                                         th:data-img="${dish.imageUrl != null and !dish.imageUrl.isEmpty() ? dish.imageUrl : 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80'}"
+                                         onclick="openDishModal(this)">
+                                        <div class="landing-dish-img-wrap">
+                                            <span class="landing-category-badge" th:text="${group.category.name}">Category</span>
+                                            <div th:if="${dish.status.name() == 'OUT_OF_STOCK'}" class="badge-out-of-stock">Tạm hết hàng</div>
+                                            <div th:if="${dish.status.name() == 'AVAILABLE' and dish.price > 100000}" class="badge-hot" style="position: absolute; top: 12px; right: 12px;">HOT</div>
+                                            <img class="landing-dish-img"
+                                                 th:src="${dish.imageUrl != null and !dish.imageUrl.isEmpty() ? dish.imageUrl : 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80'}"
+                                                 th:alt="${dish.name}"
+                                                 loading="lazy"/>
+                                            <button type="button" class="dish-quick-view-btn" title="Xem nhanh">
+                                                <i class="bi bi-eye-fill"></i>
+                                            </button>
+                                        </div>
+                                        <div class="landing-dish-body">
+                                            <h3 class="landing-dish-name" th:text="${dish.name}">Tên món ăn</h3>
+                                            <p class="landing-dish-desc" th:text="${dish.description}">Mô tả ngắn món ăn lẩu tứ quý đậm đà hương vị tươi ngon...</p>
+                                            <div class="landing-dish-footer">
+                                                <span class="landing-dish-price" th:text="${#numbers.formatDecimal(dish.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">89.000 đ</span>
+                                                <span class="badge badge-success" th:if="${dish.status.name() == 'AVAILABLE'}" style="font-size: 0.78rem;">Sẵn sàng</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </th:block>
+                            </div>
+                        </div>
+                    </section>
+                </th:block>
+            </div>
+        </div>
+
+        <!-- ================================================================
+             SECTION 3: GIỚI THIỆU QUÁN (#about)
+             ================================================================ -->
+        <section id="about" class="landing-about-section">
+            <div class="section-container">
+                <div class="section-header">
+                    <div class="gold-badge" style="margin-bottom: 12px;">BEAUTY &amp; NOURISHMENT</div>
+                    <h2 class="section-title">Tinh Hoa Văn Hóa Lẩu Tứ Quý</h2>
+                    <p class="section-subtitle">Sự hòa quyện giữa công thức ninh dùng gia truyền và phong cách phục vụ chuẩn 5 sao</p>
+                </div>
+
+                <div class="about-grid">
+                    <div class="about-card">
+                        <span class="about-icon">🍲</span>
+                        <h3 class="about-card-title">4 Vị Nước Lẩu Độc Quyền</h3>
+                        <p class="about-card-desc">Nước Lẩu Thái chua cay bùng nổ, Lẩu Kim Chi đậm đà, Lẩu Nấm bổ dưỡng ninh cùng sâm quý và Lẩu Tứ Xuyên cay nồng đặc trưng.</p>
+                    </div>
+                    <div class="about-card">
+                        <span class="about-icon">🥩</span>
+                        <h3 class="about-card-title">100% Nguyên Liệu Tươi Sạch</h3>
+                        <p class="about-card-desc">Thịt ba chỉ bò Mỹ vân mỡ đều, tôm sú tươi giòn, mực ống biển tươi sạch và rau nấm hữu cơ nhập mới mỗi sáng.</p>
+                    </div>
+                    <div class="about-card">
+                        <span class="about-icon">🏛️</span>
+                        <h3 class="about-card-title">Không Gian Sang Trọng</h3>
+                        <p class="about-card-desc">Không gian kiến trúc hiện đại ấm cúng, thiết kế phòng VIP riêng tư sang trọng đáp ứng nhu cầu gặp gỡ đối tác và gia đình.</p>
+                    </div>
+                    <div class="about-card">
+                        <span class="about-icon">🛎️</span>
+                        <h3 class="about-card-title">Dịch Vụ Tận Tâm 5 Star</h3>
+                        <p class="about-card-desc">Đội ngũ nhân viên thân thiện, phục vụ chu đáo, hỗ trợ gọi món nhanh chóng đem lại cảm giác thoải mái nhất cho quý khách.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================
+             SECTION MỚI BỔ SUNG: ĐÁNH GIÁ & PHẢN HỒI KHÁCH HÀNG (#feedback)
+             (Form gửi trực tiếp + Danh sách 5 đánh giá mới nhất có thanh cuộn)
+             ================================================================ -->
+        <section id="feedback" class="landing-feedback-section">
+            <div class="section-container">
+                <div class="section-header">
+                    <div class="gold-badge" style="margin-bottom: 12px;">CUSTOMER REVIEWS &amp; FEEDBACK</div>
+                    <h2 class="section-title">Đánh Giá Từ Khách Hàng</h2>
+                    <p class="section-subtitle">Lắng nghe ý kiến và cảm nhận thực tế của quý khách để Lẩu Tứ Quý hoàn thiện hơn mỗi ngày</p>
+                </div>
+
+                <div class="feedback-container-grid">
+                    <!-- Form Gửi Đánh Giá Trực Tiếp -->
+                    <div class="feedback-form-card">
+                        <h3 class="feedback-form-title"><i class="bi bi-pencil-square" style="color:#D53E0F;"></i> Gửi Đánh Giá Trực Tiếp</h3>
+                        <p class="feedback-form-subtitle">Chia sẻ cảm nhận của bạn về hương vị nước lẩu, đồ nhúng và dịch vụ tại nhà hàng</p>
+
+                        <form id="landingFeedbackForm" onsubmit="handleLandingFeedbackSubmit(event)">
+                            <!-- Tên người đánh giá (Tự động hiển thị tên khách hàng nếu đã login, hoặc 'Khách hàng' nếu là khách vãng lai) -->
+                            <div style="margin-bottom: 16px;">
+                                <label style="display:block; font-weight:700; font-size:0.88rem; color:#5E0006; margin-bottom:6px;">
+                                    <i class="bi bi-person-fill"></i> Người đánh giá:
+                                </label>
+                                <input type="text" class="form-control" readonly
+                                       th:value="${currentUserFullName ?: 'Khách hàng'}"
+                                       style="background-color:#F7EEDC; font-weight:700; color:#5E0006; border-radius:10px; border:1px solid rgba(155,15,6,0.2); padding:10px 14px;"/>
+                            </div>
+
+                            <!-- Chọn món ăn đánh giá (Không bắt buộc) -->
+                            <div style="margin-bottom: 16px;">
+                                <label style="display:block; font-weight:700; font-size:0.88rem; color:#5E0006; margin-bottom:6px;">
+                                    <i class="bi bi-egg-fried"></i> Món ăn trải nghiệm (Không bắt buộc):
+                                </label>
+                                <select id="landingFeedbackDishId" class="form-select" style="width:100%; padding:10px 14px; border-radius:10px; border:1.5px solid rgba(155,15,6,0.18); background:#fff; font-size:0.92rem; outline:none;">
+                                    <option value="">-- Cảm nhận chung về nhà hàng --</option>
+                                    <th:block th:each="dish : ${allDishes}">
+                                        <option th:value="${dish.id}" th:text="${dish.name}"></option>
+                                    </th:block>
+                                </select>
+                            </div>
+
+                            <!-- Nội dung đánh giá -->
+                            <div style="margin-bottom: 20px;">
+                                <label style="display:block; font-weight:700; font-size:0.88rem; color:#5E0006; margin-bottom:6px;">
+                                    <i class="bi bi-chat-left-text-fill"></i> Nội dung đánh giá &amp; góp ý <span style="color:#D53E0F;">*</span>:
+                                </label>
+                                <textarea id="landingFeedbackContent" rows="4" required class="form-control"
+                                          placeholder="Viết cảm nhận của bạn về độ chua cay đậm đà của nước lẩu, độ tươi ngon của bò Mỹ, hải sản hoặc thái độ phục vụ..."
+                                          style="width:100%; padding:12px 14px; border-radius:12px; border:1.5px solid rgba(155,15,6,0.18); font-size:0.92rem; resize:vertical; outline:none;"></textarea>
+                            </div>
+
+                            <button type="submit" id="submitFeedbackBtn" class="btn-hero-primary" style="width:100%; justify-content:center; gap:8px;">
+                                <i class="bi bi-send-fill"></i> Gửi Đánh Giá Ngay
+                            </button>
+
+                            <!-- Alert kết quả -->
+                            <div id="landingFeedbackAlert" style="display:none; margin-top:14px; padding:12px; border-radius:10px; font-size:0.9rem; font-weight:600;"></div>
+                        </form>
+                    </div>
+
+                    <!-- Danh Sách Đánh Giá (Cuộn chuột hiển thị các đánh giá cũ hơn) -->
+                    <div style="display:flex; flex-direction:column;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                            <h3 style="font-family:var(--font-display, 'Playfair Display', serif); font-size:1.35rem; font-weight:800; color:#5E0006; margin:0;">
+                                <i class="bi bi-chat-quote-fill" style="color:#D53E0F;"></i> Đánh Giá Mới Nhất
+                            </h3>
+                            <span class="badge" style="background:#5E0006; color:#EED9B9; padding:6px 12px; border-radius:9999px; font-size:0.82rem; font-weight:700;"
+                                  th:text="${feedbacks != null ? #lists.size(feedbacks) : 0} + ' Đánh Giá'">5 Đánh Giá</span>
+                        </div>
+                        <p style="font-size:0.85rem; color:#9a7060; margin:0 0 14px 0;">
+                            <i class="bi bi-mouse-fill"></i> Cuộn chuột xuống để xem danh sách tất cả các đánh giá
+                        </p>
+
+                        <!-- Scrollable Container -->
+                        <div id="feedbackScrollList" class="feedback-scroll-list">
+                            <th:block th:if="${feedbacks != null and !#lists.isEmpty(feedbacks)}">
+                                <th:block th:each="fb : ${feedbacks}">
+                                    <div class="feedback-item-card">
+                                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                                            <div style="display:flex; align-items:center; gap:12px;">
+                                                <div class="feedback-author-avatar" th:text="${fb.account != null and fb.account.fullName != null and !fb.account.fullName.isEmpty() ? #strings.substring(fb.account.fullName, 0, 1).toUpperCase() : 'K'}">K</div>
+                                                <div>
+                                                    <div style="font-weight:700; color:#2d0a06; font-size:0.98rem;"
+                                                         th:text="${fb.account != null and fb.account.fullName != null and !fb.account.fullName.isEmpty() ? fb.account.fullName : 'Khách hàng'}">Khách hàng</div>
+                                                    <div style="font-size:0.78rem; color:#9a7060;"
+                                                         th:text="${fb.createdAt != null ? #temporals.format(fb.createdAt, 'dd/MM/yyyy HH:mm') : 'Gần đây'}">30/07/2026 09:20</div>
+                                                </div>
+                                            </div>
+                                            <!-- Star Rating 5 sao -->
+                                            <div style="color:#FFD700; font-size:0.88rem;">
+                                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                            </div>
+                                        </div>
+
+                                        <div th:if="${fb.dish != null}" style="margin-bottom:8px;">
+                                            <span style="display:inline-block; background:#F7EEDC; color:#9B0F06; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:700;">
+                                                <i class="bi bi-egg-fried"></i> Món ăn: <span th:text="${fb.dish.name}">Nước lẩu Thái</span>
+                                            </span>
+                                        </div>
+
+                                        <p style="font-size:0.92rem; color:#5a1a14; line-height:1.55; margin:0;" th:text="${fb.content}">Nội dung đánh giá...</p>
+
+                                        <!-- Phản hồi từ Quản trị viên/Nhân viên nếu có -->
+                                        <div th:if="${fb.reply != null and !fb.reply.isEmpty()}" class="staff-reply-box">
+                                            <div style="font-weight:700; color:#5E0006; margin-bottom:4px;">
+                                                <i class="bi bi-reply-fill" style="color:#D53E0F;"></i> Phản hồi từ Lẩu Tứ Quý:
+                                            </div>
+                                            <div th:text="${fb.reply}">Cảm ơn quý khách đã ủng hộ nhà hàng!</div>
+                                        </div>
+                                    </div>
+                                </th:block>
+                            </th:block>
+
+                            <!-- Fallback Reviews nếu DB rỗng -->
+                            <th:block th:if="${feedbacks == null or #lists.isEmpty(feedbacks)}">
+                                <div class="feedback-item-card">
+                                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                                        <div style="display:flex; align-items:center; gap:12px;">
+                                            <div class="feedback-author-avatar">P</div>
+                                            <div>
+                                                <div style="font-weight:700; color:#2d0a06; font-size:0.98rem;">Phạm Thu Hà</div>
+                                                <div style="font-size:0.78rem; color:#9a7060;">30/07/2026 08:30</div>
+                                            </div>
+                                        </div>
+                                        <div style="color:#FFD700; font-size:0.88rem;">
+                                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        </div>
+                                    </div>
+                                    <div style="margin-bottom:8px;">
+                                        <span style="display:inline-block; background:#F7EEDC; color:#9B0F06; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:700;">
+                                            <i class="bi bi-egg-fried"></i> Món ăn: Nước lẩu Thái chua cay
+                                        </span>
+                                    </div>
+                                    <p style="font-size:0.92rem; color:#5a1a14; line-height:1.55; margin:0;">
+                                        Nước lẩu Thái ở đây thực sự xuất sắc! Vị chua cay nồng đậm đà chuẩn vị, thịt ba chỉ bò Mỹ vân mỡ mỏng mềm ngọt thanh. Đã cùng gia đình tới ăn và rất hài lòng!
+                                    </p>
+                                    <div class="staff-reply-box">
+                                        <div style="font-weight:700; color:#5E0006; margin-bottom:4px;">
+                                            <i class="bi bi-reply-fill" style="color:#D53E0F;"></i> Phản hồi từ Lẩu Tứ Quý:
+                                        </div>
+                                        <div>Cảm ơn chị Thu Hà rất nhiều! Nhà hàng rất hân hạnh được tiếp đón gia đình chị lần sau ạ.</div>
+                                    </div>
+                                </div>
+
+                                <div class="feedback-item-card">
+                                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                                        <div style="display:flex; align-items:center; gap:12px;">
+                                            <div class="feedback-author-avatar">K</div>
+                                            <div>
+                                                <div style="font-weight:700; color:#2d0a06; font-size:0.98rem;">Khách hàng</div>
+                                                <div style="font-size:0.78rem; color:#9a7060;">29/07/2026 19:45</div>
+                                            </div>
+                                        </div>
+                                        <div style="color:#FFD700; font-size:0.88rem;">
+                                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        </div>
+                                    </div>
+                                    <div style="margin-bottom:8px;">
+                                        <span style="display:inline-block; background:#F7EEDC; color:#9B0F06; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:700;">
+                                            <i class="bi bi-egg-fried"></i> Món ăn: Tôm sú tươi sống
+                                        </span>
+                                    </div>
+                                    <p style="font-size:0.92rem; color:#5a1a14; line-height:1.55; margin:0;">
+                                        Tôm sú biển siêu tươi ngon, thịt giòn ngọt nhảy tanh tách. Nhân viên phục vụ lên món nhanh và nhiệt tình. 10/10 điểm cho chất lượng!
+                                    </p>
+                                </div>
+
+                                <div class="feedback-item-card">
+                                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                                        <div style="display:flex; align-items:center; gap:12px;">
+                                            <div class="feedback-author-avatar">V</div>
+                                            <div>
+                                                <div style="font-weight:700; color:#2d0a06; font-size:0.98rem;">Vũ Ngọc Lan</div>
+                                                <div style="font-size:0.78rem; color:#9a7060;">28/07/2026 20:15</div>
+                                            </div>
+                                        </div>
+                                        <div style="color:#FFD700; font-size:0.88rem;">
+                                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        </div>
+                                    </div>
+                                    <p style="font-size:0.92rem; color:#5a1a14; line-height:1.55; margin:0;">
+                                        Không gian phòng VIP rất sang trọng và riêng tư, rất thích hợp cho những buổi tiệc gặp gỡ bạn bè và gia đình. Nước lẩu Nấm ngọt thanh dễ ăn.
+                                    </p>
+                                </div>
+
+                                <div class="feedback-item-card">
+                                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                                        <div style="display:flex; align-items:center; gap:12px;">
+                                            <div class="feedback-author-avatar">Đ</div>
+                                            <div>
+                                                <div style="font-weight:700; color:#2d0a06; font-size:0.98rem;">Đỗ Minh Khang</div>
+                                                <div style="font-size:0.78rem; color:#9a7060;">27/07/2026 18:50</div>
+                                            </div>
+                                        </div>
+                                        <div style="color:#FFD700; font-size:0.88rem;">
+                                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                        </div>
+                                    </div>
+                                    <p style="font-size:0.92rem; color:#5a1a14; line-height:1.55; margin:0;">
+                                        Bò Wagyu Nhật Bản cực kỳ mềm mịn, nhúng nước lẩu Kim Chi cay nồng quá đã. Sẽ quay lại nhiều lần nữa!
+                                    </p>
+                                </div>
+                            </th:block>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ================================================================
+         SECTION 4: FOOTER
+         ================================================================ -->
+    <footer class="landing-footer">
+        <div class="footer-container">
+            <div>
+                <div class="footer-brand-title" style="display: flex; align-items: center; gap: 12px;">
+                    <img th:src="@{/images/logo.png}" alt="Lẩu Tứ Quý Logo" style="height: 48px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));"/>
+                    <span>Lẩu Tứ Quý</span>
+                </div>
+                <p class="footer-desc">
+                    Hệ thống nhà hàng Lẩu Tứ Quý mang đến trải nghiệm ẩm thực lẩu dưỡng sinh thượng hạng với hương vị đậm đà và phong cách phục vụ chu đáo.
+                </p>
+            </div>
+            <div>
+                <div class="footer-links-title">Liên Kết Nhanh</div>
+                <ul class="footer-links-list">
+                    <li><a href="#hero">Trang Chủ</a></li>
+                    <li><a href="#menu">Toàn Bộ Thực Đơn</a></li>
+                    <li><a href="#about">Giới Thiệu Nhà Hàng</a></li>
+                    <li><a href="#feedback">Đánh Giá Khách Hàng</a></li>
+                </ul>
+            </div>
+            <div>
+                <div class="footer-links-title">Dành Cho Hệ Thống</div>
+                <ul class="footer-links-list">
+                    <li><a th:href="@{/auth/login}"><i class="bi bi-lock-fill"></i> Đăng Nhập Hệ Thống</a></li>
+                    <li><a th:href="@{/admin/dashboard}"><i class="bi bi-shield-lock-fill"></i> Quản Trị Viên (/admin)</a></li>
+                    <li><a th:href="@{/staff/bookings}"><i class="bi bi-person-badge-fill"></i> Nhân Viên (/staff)</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            &copy; 2026 Lẩu Tứ Quý Restaurant Management System. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- Floating Bar -->
+    <div class="floating-quick-bar">
+        <a href="tel:1900123456" class="float-btn float-btn-hotline" title="Hotline Đặt Bàn: 1900 123 456">
+            <i class="bi bi-telephone-fill"></i>
+        </a>
+        <a href="#hero" class="float-btn float-btn-top" title="Về đầu trang">
+            <i class="bi bi-arrow-up"></i>
+        </a>
+    </div>
+
+    <!-- Quick View Modal -->
+    <div id="dishModalOverlay" class="dish-modal-overlay" onclick="closeDishModal(event)">
+        <div class="dish-modal-box">
+            <button type="button" class="dish-modal-close" onclick="forceCloseDishModal()">&times;</button>
+            <img id="modalDishImg" class="dish-modal-img" src="" alt="Món ăn"/>
+            <div class="dish-modal-body">
+                <div id="modalDishCategory" class="dish-modal-category">Danh mục</div>
+                <h2 id="modalDishTitle" class="dish-modal-title">Tên Món Ăn</h2>
+                <p id="modalDishDesc" class="dish-modal-desc">Mô tả chi tiết món ăn...</p>
+                <div class="dish-modal-footer">
+                    <span id="modalDishPrice" class="dish-modal-price">0 đ</span>
+                    <span class="badge badge-success" style="font-size: 0.88rem; padding: 6px 14px; background-color: #2e7d52; color:#fff; border-radius: 9999px;">Đặc Sản Lẩu Tứ Quý</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fallback & Interaction Scripts -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        document.addEventListener('DOMContentLoaded', function () {
+            const menuContainer = document.getElementById('dynamicMenuContainer');
+
+            if (!menuContainer || menuContainer.children.length === 0) {
+                console.log('Rendering fallback dish grid...');
+                const fallbackCategories = [
+                    {
+                        name: 'Nước Lẩu',
+                        slug: 'nuoc-lau',
+                        description: 'Nước lẩu độc quyền ninh hầm sâm & xương ống hơn 8 tiếng',
+                        dishes: [
+                            { name: 'Nước lẩu Thái chua cay', price: '89.000 đ', desc: 'Vị chua cay nồng nàn thơm lừng hương sả, ớt hiểm và lá chanh Thái chuẩn vị', img: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80', isHot: true },
+                            { name: 'Nước lẩu Kim Chi Hàn Quốc', price: '99.000 đ', desc: 'Vị cay nồng đậm đà chuẩn vị xứ Kim Chi kết hợp hải sản thơm ngọt', img: 'https://cdn.tgdd.vn/2021/10/CookDish/cach-nau-lau-kim-chi-hai-san-han-quoc-chua-cay-dam-da-huong-avt-1200x676.jpeg', isHot: false },
+                            { name: 'Nước lẩu Nấm thanh vị', price: '79.000 đ', desc: 'Hương vị thanh ngọt dưỡng sinh ninh từ nấm đông cô, kỷ tử và hoài sơn bổ dưỡng', img: 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=600&q=80', isHot: false }
+                        ]
+                    },
+                    {
+                        name: 'Đồ Nhúng Bò',
+                        slug: 'do-nhung-bo',
+                        description: 'Thịt bò Mỹ cao cấp tươi ngon thái mỏng chuẩn nhúng lẩu',
+                        dishes: [
+                            { name: 'Ba chỉ bò Mỹ nhúng lẩu', price: '129.000 đ', desc: 'Thịt ba chỉ bò Mỹ vân mỡ đều, mềm mọng thơm béo ngậy', img: 'https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=600&q=80', isHot: true },
+                            { name: 'Bò Wagyu Nhật Bản', price: '259.000 đ', desc: 'Thịt bò Wagyu vân mỡ cẩm thạch cực phẩm tan chảy trong miệng', img: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80', isHot: true }
+                        ]
+                    },
+                    {
+                        name: 'Đồ Nhúng Hải Sản',
+                        slug: 'do-nhung-hai-san',
+                        description: 'Hải sản tươi sống chọn lọc nhập mới hằng ngày',
+                        dishes: [
+                            { name: 'Tôm sú tươi sống', price: '149.000 đ', desc: 'Tôm sú biển tươi nhảy tanh tách nhúng lẩu giòn ngọt tự nhiên', img: 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&w=600&q=80', isHot: true },
+                            { name: 'Mực ống tươi giòn', price: '109.000 đ', desc: 'Mực ống biển tươi được làm sạch sẵn, nhúng lẩu giòn sần sật', img: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80', isHot: false }
+                        ]
+                    },
+                    {
+                        name: 'Rau Nấm Tươi',
+                        slug: 'rau-nam-tuoi',
+                        description: 'Rau củ hữu cơ và các loại nấm sạch thiên nhiên',
+                        dishes: [
+                            { name: 'Nấm kim châm tươi', price: '39.000 đ', desc: 'Nấm kim châm trắng giòn giòn ngọt mát', img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80', isHot: false },
+                            { name: 'Rau muống nhặt sẵn', price: '25.000 đ', desc: 'Rau muống xanh tươi giòn ngọt', img: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=600&q=80', isHot: false }
+                        ]
+                    },
+                    {
+                        name: 'Đồ Uống & Trái Cây',
+                        slug: 'do-uong-trai-cay',
+                        description: 'Thức uống giải khát mát lạnh và hoa quả tươi',
+                        dishes: [
+                            { name: 'Coca-Cola ướp lạnh lon', price: '15.000 đ', desc: 'Lon 330ml ướp lạnh sảng khoái', img: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=600&q=80', isHot: false },
+                            { name: 'Bia Tiger lon 330ml', price: '25.000 đ', desc: 'Bia Tiger ướp lạnh sảng khoái cực đã', img: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80', isHot: false }
+                        ]
+                    }
+                ];
+
+                let html = '';
+                fallbackCategories.forEach((cat, index) => {
+                    const bgClass = (index % 2 === 0) ? 'bg-white' : 'bg-alt';
+                    html += `
+                        <section id="${cat.slug}" class="menu-section ${bgClass}">
+                            <div class="section-container">
+                                <div class="section-header">
+                                    <h2 class="section-title">${cat.name}</h2>
+                                    <p class="section-subtitle">${cat.description}</p>
+                                </div>
+                                <div class="landing-dish-grid">
+                                    ${cat.dishes.map(d => `
+                                        <div class="landing-dish-card dish-item-card"
+                                             data-name="${d.name}"
+                                             data-category="${cat.name}"
+                                             data-desc="${d.desc}"
+                                             data-price="${d.price}"
+                                             data-img="${d.img}"
+                                             onclick="openDishModal(this)">
+                                            <div class="landing-dish-img-wrap">
+                                                <span class="landing-category-badge">${cat.name}</span>
+                                                ${d.isHot ? `<div class="badge-hot" style="position:absolute; top:12px; right:12px; z-index:5;">HOT</div>` : ''}
+                                                <img class="landing-dish-img" src="${d.img}" alt="${d.name}" loading="lazy"/>
+                                                <button type="button" class="dish-quick-view-btn" title="Xem nhanh">
+                                                    <i class="bi bi-eye-fill"></i>
+                                                </button>
+                                            </div>
+                                            <div class="landing-dish-body">
+                                                <h3 class="landing-dish-name">${d.name}</h3>
+                                                <p class="landing-dish-desc">${d.desc}</p>
+                                                <div class="landing-dish-footer">
+                                                    <span class="landing-dish-price">${d.price}</span>
+                                                    <span class="badge badge-success" style="font-size: 0.78rem; background-color: #2e7d52; color:#fff; padding: 4px 10px; border-radius: 9999px;">Sẵn sàng</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </section>
+                    `;
+                });
+                menuContainer.innerHTML = html;
+            }
+        });
+
+        // Xử lý gửi Đánh Giá Trực Tiếp via AJAX
+        function handleLandingFeedbackSubmit(e) {
+            e.preventDefault();
+            const dishId = document.getElementById('landingFeedbackDishId').value;
+            const content = document.getElementById('landingFeedbackContent').value;
+            const btn = document.getElementById('submitFeedbackBtn');
+            const alertBox = document.getElementById('landingFeedbackAlert');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang gửi...';
+
+            const formData = new FormData();
+            if (dishId) formData.append('dishId', dishId);
+            formData.append('content', content);
+
+            fetch('/api/feedback/landing-submit', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send-fill"></i> Gửi Đánh Giá Ngay';
+
+                alertBox.style.display = 'block';
+                if (data.success) {
+                    alertBox.style.backgroundColor = '#d4edda';
+                    alertBox.style.color = '#155724';
+                    alertBox.style.border = '1px solid #c3e6cb';
+                    alertBox.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + data.message;
+
+                    document.getElementById('landingFeedbackContent').value = '';
+                    document.getElementById('landingFeedbackDishId').value = '';
+
+                    // Thêm đánh giá mới vào đầu danh sách cuộn ngay lập tức
+                    const scrollList = document.getElementById('feedbackScrollList');
+                    const initialLetter = data.authorName ? data.authorName.charAt(0).toUpperCase() : 'K';
+                    const newCard = document.createElement('div');
+                    newCard.className = 'feedback-item-card';
+                    newCard.style.animation = 'fadeIn 0.5s ease';
+                    newCard.innerHTML = `
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div class="feedback-author-avatar">${initialLetter}</div>
+                                <div>
+                                    <div style="font-weight:700; color:#2d0a06; font-size:0.98rem;">${data.authorName}</div>
+                                    <div style="font-size:0.78rem; color:#9a7060;">${data.dateFormatted}</div>
+                                </div>
+                            </div>
+                            <div style="color:#FFD700; font-size:0.88rem;">
+                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                            </div>
+                        </div>
+                        ${data.dishName && data.dishName !== 'Phản hồi chung' ? `
+                            <div style="margin-bottom:8px;">
+                                <span style="display:inline-block; background:#F7EEDC; color:#9B0F06; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:700;">
+                                    <i class="bi bi-egg-fried"></i> Món ăn: ${data.dishName}
+                                </span>
+                            </div>
+                        ` : ''}
+                        <p style="font-size:0.92rem; color:#5a1a14; line-height:1.55; margin:0;">${data.content}</p>
+                    `;
+                    scrollList.insertBefore(newCard, scrollList.firstChild);
+                    scrollList.scrollTop = 0;
+                } else {
+                    alertBox.style.backgroundColor = '#f8d7da';
+                    alertBox.style.color = '#721c24';
+                    alertBox.style.border = '1px solid #f5c6cb';
+                    alertBox.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + data.message;
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send-fill"></i> Gửi Đánh Giá Ngay';
+                alertBox.style.display = 'block';
+                alertBox.style.backgroundColor = '#f8d7da';
+                alertBox.style.color = '#721c24';
+                alertBox.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> Đã xảy ra lỗi kết nối.';
+            });
+        }
+
+        function searchDishes() {
+            const query = document.getElementById('dishSearchInput').value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.dish-item-card');
+
+            cards.forEach(card => {
+                const name = (card.getAttribute('data-name') || '').toLowerCase();
+                const desc = (card.getAttribute('data-desc') || '').toLowerCase();
+
+                if (name.includes(query) || desc.includes(query)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function filterCategory(slug) {
+            const pills = document.querySelectorAll('.pill-item');
+            pills.forEach(p => p.classList.remove('active'));
+
+            const activePill = document.querySelector(`.pill-item[href="#${slug}"]`);
+            if (activePill) activePill.classList.add('active');
+        }
+
+        function openDishModal(cardElement) {
+            const name = cardElement.getAttribute('data-name');
+            const cat = cardElement.getAttribute('data-category');
+            const desc = cardElement.getAttribute('data-desc');
+            const price = cardElement.getAttribute('data-price');
+            const img = cardElement.getAttribute('data-img');
+
+            document.getElementById('modalDishTitle').textContent = name;
+            document.getElementById('modalDishCategory').textContent = cat;
+            document.getElementById('modalDishDesc').textContent = desc;
+            document.getElementById('modalDishPrice').textContent = price;
+            document.getElementById('modalDishImg').src = img;
+
+            document.getElementById('dishModalOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDishModal(event) {
+            if (event.target.id === 'dishModalOverlay') {
+                forceCloseDishModal();
+            }
+        }
+
+        function forceCloseDishModal() {
+            document.getElementById('dishModalOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        /*]]>*/
+    </script>
+</body>
+</html>

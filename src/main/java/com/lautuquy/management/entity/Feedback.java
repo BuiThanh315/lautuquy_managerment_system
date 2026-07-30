@@ -12,7 +12,7 @@ public class Feedback {
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "account_id", nullable = false)
+    @JoinColumn(name = "account_id", nullable = true)
     private Account account;
 
     @ManyToOne(fetch = FetchType.EAGER)

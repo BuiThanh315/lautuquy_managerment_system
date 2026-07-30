@@ -28,7 +28,9 @@
                 <a th:if="${isSeated}" th:href="@{/customer/order}" class="nav-item">
                     <i class="bi bi-cart-fill nav-icon"></i><span>Gọi món</span>
                 </a>
-                <a th:href="@{/customer/booking}" class="nav-item" th:classappend="${isSeated ? 'disabled' : ''}">
+                <a th:href="${isSeated ? 'javascript:void(0)' : '/customer/booking'}" class="nav-item"
+                    th:classappend="${isSeated ? 'disabled' : ''}"
+                    th:style="${isSeated ? 'pointer-events:none; opacity:0.45; cursor:not-allowed;' : ''}">
                     <i class="bi bi-calendar-plus-fill nav-icon"></i><span>Đặt bàn</span>
                 </a>
                 <a th:href="@{/customer/booking/history}" class="nav-item active">

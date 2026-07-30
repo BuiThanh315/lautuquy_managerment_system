@@ -625,6 +625,206 @@
                 grid-template-columns: 1fr !important;
             }
         }
+
+        /* Lightbox Success Modal Overlay & Cards */
+        .booking-lightbox-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 3, 4, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .booking-lightbox-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .booking-lightbox-card {
+            background: #FFFFFF;
+            border: 2px solid #EED9B9;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 580px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 32px 28px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            position: relative;
+            transform: scale(0.85);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+        }
+
+        .booking-lightbox-overlay.active .booking-lightbox-card {
+            transform: scale(1);
+        }
+
+        .lightbox-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            font-size: 1.8rem;
+            color: #9a7060;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.2s ease;
+        }
+
+        .lightbox-close-btn:hover {
+            color: #5E0006;
+        }
+
+        .lightbox-icon-wrap {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .lightbox-icon-circle {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 2.5rem;
+            box-shadow: 0 8px 24px rgba(46, 204, 113, 0.35);
+            animation: lightboxPop 0.4s ease-out;
+        }
+
+        @keyframes lightboxPop {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .lightbox-title {
+            font-family: var(--font-display, 'Playfair Display', serif);
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: #5E0006;
+            margin: 0 0 6px 0;
+        }
+
+        .lightbox-subtitle {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0 0 20px 0;
+        }
+
+        .lightbox-details-box {
+            background: #FBF5EA;
+            border: 1px solid rgba(155, 15, 6, 0.15);
+            border-radius: 16px;
+            padding: 18px 20px;
+            text-align: left;
+            margin-bottom: 24px;
+        }
+
+        .lightbox-detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed rgba(155, 15, 6, 0.12);
+            font-size: 0.9rem;
+        }
+
+        .lightbox-detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .lightbox-detail-label {
+            color: #777;
+            font-weight: 600;
+        }
+
+        .lightbox-detail-value {
+            color: #2d0a06;
+            font-weight: 700;
+        }
+
+        .lightbox-dishes-summary {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(155, 15, 6, 0.15);
+        }
+
+        .lightbox-dishes-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #5E0006;
+            margin-bottom: 8px;
+        }
+
+        .lightbox-dish-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            padding: 3px 0;
+            color: #444;
+        }
+
+        .lightbox-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn-lightbox-secondary {
+            background: #eee;
+            color: #444;
+            border: none;
+            border-radius: 9999px;
+            padding: 10px 22px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-lightbox-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-lightbox-primary {
+            background: linear-gradient(135deg, #D53E0F 0%, #9B0F06 100%);
+            color: #ffffff !important;
+            border: none;
+            border-radius: 9999px;
+            padding: 10px 24px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 16px rgba(213, 62, 15, 0.3);
+            transition: transform 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-lightbox-primary:hover {
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body class="booking-page-body">
@@ -837,7 +1037,7 @@
 
                     <!-- Submit Action Button Bar -->
                     <div style="text-align:center; margin-top:30px; padding-top:24px; border-top:1.5px dashed rgba(155,15,6,0.18);">
-                        <button type="submit" class="btn-hero-primary" th:disabled="${isSeated}">
+                        <button type="button" id="btnSubmitBooking" class="btn-hero-primary" th:disabled="${isSeated}">
                             <i class="bi bi-calendar-check-fill"></i> Xác Nhận Đặt Bàn Ngay
                         </button>
                     </div>
@@ -897,6 +1097,33 @@
 
     <!-- Toast Container -->
     <div id="toast-container" style="position:fixed; top:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:10px; pointer-events:none;"></div>
+
+    <!-- Lightbox Modal Thông Báo Đặt Bàn Thành Công -->
+    <div id="bookingSuccessModal" class="booking-lightbox-overlay">
+        <div class="booking-lightbox-card">
+            <button type="button" class="lightbox-close-btn" onclick="closeBookingLightbox()">&times;</button>
+            <div class="lightbox-icon-wrap">
+                <div class="lightbox-icon-circle">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+            </div>
+            <h3 class="lightbox-title">Đặt Bàn Thành Công!</h3>
+            <p class="lightbox-subtitle">Cảm ơn quý khách đã chọn Lẩu Tứ Quý. Thông tin đặt bàn đã được ghi nhận trên hệ thống!</p>
+            
+            <div class="lightbox-details-box" id="lightboxDetailsContent">
+                <!-- Nạp chi tiết động bằng JavaScript -->
+            </div>
+
+            <div class="lightbox-actions">
+                <button type="button" class="btn-lightbox-secondary" onclick="closeBookingLightbox()">
+                    <i class="bi bi-x-lg"></i> Đóng
+                </button>
+                <a th:href="@{/customer/booking/history}" href="/customer/booking/history" class="btn-lightbox-primary">
+                    <i class="bi bi-clock-history"></i> Xem Lịch Sử Đặt Bàn
+                </a>
+            </div>
+        </div>
+    </div>
 
     <!-- ================================================================
          JAVASCRIPT LOGIC DÀNH CHO BẢNG MÓN ĐẶT TRƯỚC VÀ FORM ĐẶT BÀN
@@ -1081,6 +1308,81 @@
             savePreordersToStorage(Array.from(selectedPreordersMap.values()));
         }
 
+        // 5. Hiển thị & Đóng Lightbox Popup Thông Báo Đặt Bàn Thành Công
+        function openBookingLightbox(detail) {
+            const modal = document.getElementById('bookingSuccessModal');
+            const content = document.getElementById('lightboxDetailsContent');
+
+            if (!modal || !content) return;
+
+            let dishesHtml = '';
+            if (detail.preorders && detail.preorders.length > 0) {
+                dishesHtml = `
+                    <div class="lightbox-dishes-summary">
+                        <div class="lightbox-dishes-title"><i class="bi bi-journal-text"></i> Món Ăn Đặt Trước (${detail.preorders.length} món):</div>
+                        ${detail.preorders.map(item => `
+                            <div class="lightbox-dish-item">
+                                <span>• ${item.dishName || 'Món ăn'} x${item.quantity || 1}</span>
+                                <span style="font-weight:700;">${formatCurrency(item.totalPrice || 0)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            content.innerHTML = `
+                <div class="lightbox-detail-row">
+                    <span class="lightbox-detail-label">Mã Đặt Bàn:</span>
+                    <span class="lightbox-detail-value" style="color:#D53E0F;">#${detail.id || ''}</span>
+                </div>
+                <div class="lightbox-detail-row">
+                    <span class="lightbox-detail-label">Họ và Tên:</span>
+                    <span class="lightbox-detail-value">${detail.customerName || ''}</span>
+                </div>
+                <div class="lightbox-detail-row">
+                    <span class="lightbox-detail-label">Số Điện Thoại:</span>
+                    <span class="lightbox-detail-value">${detail.customerPhone || ''}</span>
+                </div>
+                <div class="lightbox-detail-row">
+                    <span class="lightbox-detail-label">Thời Gian:</span>
+                    <span class="lightbox-detail-value">${detail.bookingTime || ''} - ${detail.bookingDate || ''}</span>
+                </div>
+                <div class="lightbox-detail-row">
+                    <span class="lightbox-detail-label">Bàn Ăn:</span>
+                    <span class="lightbox-detail-value">${detail.tableName || detail.tableTypeName || 'Bàn ăn'}</span>
+                </div>
+                ${detail.specialNotes ? `
+                    <div class="lightbox-detail-row">
+                        <span class="lightbox-detail-label">Ghi Chú:</span>
+                        <span class="lightbox-detail-value">${detail.specialNotes}</span>
+                    </div>
+                ` : ''}
+                <div class="lightbox-detail-row">
+                    <span class="lightbox-detail-label">Trạng Thái:</span>
+                    <span class="lightbox-detail-value" style="color:#27ae60;">${detail.statusDisplayName || 'Chờ tiếp nhận'}</span>
+                </div>
+                ${detail.depositAmount && detail.depositAmount > 0 ? `
+                    <div class="lightbox-detail-row" style="background:rgba(213,62,15,0.08); padding:8px; border-radius:8px; margin-top:6px;">
+                        <span class="lightbox-detail-label" style="color:#9B0F06; font-weight:700;">Tiền Cọc (50%):</span>
+                        <span class="lightbox-detail-value" style="color:#D53E0F; font-size:1.05rem;">${formatCurrency(detail.depositAmount)}</span>
+                    </div>
+                ` : ''}
+                ${dishesHtml}
+            `;
+
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+        }
+
+        function closeBookingLightbox() {
+            const modal = document.getElementById('bookingSuccessModal');
+            if (!modal) return;
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
         // Logic ngày giờ và nạp bàn trống via AJAX
         document.addEventListener('DOMContentLoaded', function () {
             // Khôi phục danh sách món ăn đã đặt trước từ storage
@@ -1094,9 +1396,65 @@
 
             // Xóa bộ nhớ đặt trước khi người dùng submit đơn đặt bàn thành công
             const bookingForm = document.getElementById('bookingForm');
-            if (bookingForm) {
-                bookingForm.addEventListener('submit', function () {
-                    clearPreordersFromStorage();
+            const btnSubmitBooking = document.getElementById('btnSubmitBooking');
+
+            if (bookingForm && btnSubmitBooking) {
+                btnSubmitBooking.addEventListener('click', async function (e) {
+                    e.preventDefault();
+
+                    // Kiểm tra tính hợp lệ của các trường dữ liệu HTML5
+                    if (!bookingForm.checkValidity()) {
+                        bookingForm.reportValidity();
+                        return;
+                    }
+
+                    // Vô hiệu hóa nút trong lúc gửi dữ liệu
+                    btnSubmitBooking.disabled = true;
+                    const originalHtml = btnSubmitBooking.innerHTML;
+                    btnSubmitBooking.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Đang tạo đơn...`;
+
+                    try {
+                        const formData = new FormData(bookingForm);
+                        const response = await fetch('/customer/booking/api-submit', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok && result.success) {
+                            // Xóa bộ nhớ preorder local storage & render lại bàn
+                            clearPreordersFromStorage();
+                            selectedPreordersMap.clear();
+                            renderPreorderTable();
+
+                            // Mở Lightbox Modal thông báo Đặt bàn thành công
+                            if (result.bookingDetail) {
+                                openBookingLightbox(result.bookingDetail);
+                            } else {
+                                const selectedTableTypeElem = document.getElementById('tableTypeId');
+                                const selectedTableTypeName = selectedTableTypeElem && selectedTableTypeElem.options[selectedTableTypeElem.selectedIndex] ? selectedTableTypeElem.options[selectedTableTypeElem.selectedIndex].text : '';
+                                openBookingLightbox({
+                                    id: result.bookingId,
+                                    customerName: document.getElementById('customerName')?.value || '',
+                                    customerPhone: document.getElementById('customerPhone')?.value || '',
+                                    bookingDate: document.getElementById('bookingDate')?.value || '',
+                                    bookingTime: document.getElementById('bookingTime')?.value || '',
+                                    tableTypeName: selectedTableTypeName,
+                                    statusDisplayName: 'Chờ tiếp nhận',
+                                    depositAmount: 0
+                                });
+                            }
+                        } else {
+                            showToast(result.message || 'Không thể tạo đơn đặt bàn. Vui lòng kiểm tra lại thông tin!', 'warning');
+                        }
+                    } catch (err) {
+                        console.error('Error submitting booking:', err);
+                        showToast('Đã xảy ra lỗi kết nối. Vui lòng thử lại!', 'warning');
+                    } finally {
+                        btnSubmitBooking.disabled = false;
+                        btnSubmitBooking.innerHTML = originalHtml;
+                    }
                 });
             }
 

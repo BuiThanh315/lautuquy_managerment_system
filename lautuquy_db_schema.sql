@@ -73,7 +73,7 @@ CREATE TABLE restaurant_tables (
 -- =========================================================
 CREATE TABLE bookings (
     id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
-    account_id          BIGINT NOT NULL,
+    account_id          BIGINT NULL,
     customer_name       VARCHAR(100) NOT NULL,
     customer_phone      VARCHAR(15) NOT NULL,
     booking_date        DATE NOT NULL,

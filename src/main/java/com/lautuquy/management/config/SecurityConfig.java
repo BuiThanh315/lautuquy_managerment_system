@@ -68,9 +68,9 @@ public class SecurityConfig {
                 // Chuyển hướng về trang 403 khi không có quyền truy cập
                 .accessDeniedPage("/error/403")
             )
-            // Kích hoạt CSRF (mặc định). Sẽ cấu hình thêm cho AJAX endpoint ở Giai đoạn 3
+            // Kích hoạt CSRF (mặc định). Ngoại trừ các AJAX endpoint của /api/** và /customer/**
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/**")  // Cho AJAX endpoint
+                .ignoringRequestMatchers("/api/**", "/customer/**")  // Cho AJAX endpoint
             );
 
         return http.build();

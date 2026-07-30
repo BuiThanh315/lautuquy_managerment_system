@@ -42,7 +42,8 @@ public class CustomerOrderController {
     @GetMapping
     public String viewCustomerOrder(Authentication authentication, Model model, RedirectAttributes redirectAttributes) {
         if (authentication == null) {
-            return "redirect:/auth/login";
+            redirectAttributes.addFlashAttribute("errorMessage", "Bạn chưa nhận bàn ăn tại nhà hàng.");
+            return "redirect:/customer/menu";
         }
         String username = authentication.getName();
         Booking seatedBooking = bookingService.getActiveSeatedBooking(username);

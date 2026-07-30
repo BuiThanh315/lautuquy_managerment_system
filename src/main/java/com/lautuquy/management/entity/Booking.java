@@ -17,7 +17,7 @@ public class Booking {
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "account_id", nullable = false)
+    @JoinColumn(name = "account_id", nullable = true)
     private Account account;
 
     @Column(name = "customer_name", nullable = false, length = 100)

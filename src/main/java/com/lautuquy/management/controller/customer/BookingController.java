@@ -51,6 +51,7 @@ public class BookingController {
             if (account instanceof com.lautuquy.management.entity.Account acc) {
                 bookingRequest.setCustomerName(acc.getFullName());
                 bookingRequest.setCustomerPhone(acc.getPhone());
+                bookingRequest.setCustomerEmail(acc.getEmail());
             }
             seatedBooking = bookingService.getActiveSeatedBooking(principal.getName());
         }
@@ -111,8 +112,13 @@ public class BookingController {
         }
 
         try {
-            bookingService.createBooking(principal.getName(), request);
+            String username = (principal != null) ? principal.getName() : null;
+            bookingService.createBooking(username, request);
             tableLockService.releaseSessionLock(session.getId());
+            if (principal == null) {
+                redirectAttributes.addFlashAttribute("successMessage", "Đặt bàn thành công! Lễ tân Lẩu Tứ Quý sẽ liên hệ xác nhận qua SĐT " + request.getCustomerPhone());
+                return "redirect:/customer/booking";
+            }
             redirectAttributes.addFlashAttribute("successMessage", "Đặt bàn thành công! Đơn của bạn đang chờ nhà hàng tiếp nhận.");
             return "redirect:/customer/booking/history";
         } catch (Exception e) {
@@ -126,6 +132,12 @@ public class BookingController {
 
     @GetMapping("/history")
     public String bookingHistory(Principal principal, Model model) {
+        if (principal == null) {
+            model.addAttribute("bookings", java.util.Collections.emptyList());
+            model.addAttribute("infoMessage", "Bạn chưa đăng nhập. Để xem lại lịch sử các đơn đã đặt trước đây, vui lòng nhấn nút Đăng Nhập.");
+            model.addAttribute("pageTitle", "Lịch Sử Đặt Bàn");
+            return "customer/booking-history";
+        }
         List<Booking> bookings = bookingService.getBookingsByAccount(principal.getName());
         Booking seatedBooking = bookingService.getActiveSeatedBooking(principal.getName());
         model.addAttribute("bookings", bookings);

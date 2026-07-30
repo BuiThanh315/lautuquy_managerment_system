@@ -58,8 +58,10 @@ public class BookingServiceImpl implements BookingService {
             }
         }
 
-        Account account = accountRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Tài khoản", username));
+        Account account = null;
+        if (username != null && !username.trim().isEmpty()) {
+            account = accountRepository.findByUsername(username).orElse(null);
+        }
 
         TableType tableType = tableTypeRepository.findById(request.getTableTypeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Loại bàn", request.getTableTypeId()));

@@ -45,7 +45,8 @@ public class CustomerPaymentController {
     @GetMapping
     public String viewCustomerPayment(Authentication authentication, Model model, RedirectAttributes redirectAttributes) {
         if (authentication == null) {
-            return "redirect:/auth/login";
+            redirectAttributes.addFlashAttribute("errorMessage", "Bạn chưa được nhận bàn tại nhà hàng để thực hiện thanh toán.");
+            return "redirect:/customer/menu";
         }
         String username = authentication.getName();
         Booking seatedBooking = bookingService.getActiveSeatedBooking(username);

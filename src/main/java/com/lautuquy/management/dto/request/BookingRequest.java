@@ -18,6 +18,9 @@ public class BookingRequest {
     @Pattern(regexp = "^(\\+84|0)[0-9]{9}$", message = "Số điện thoại không hợp lệ")
     private String customerPhone;
 
+    @Email(message = "Email không hợp lệ")
+    private String customerEmail;
+
     @NotNull(message = "Ngày đặt bàn không được để trống")
     @FutureOrPresent(message = "Ngày đặt bàn không thể trong quá khứ")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
@@ -42,6 +45,9 @@ public class BookingRequest {
 
     public String getCustomerPhone() { return customerPhone; }
     public void setCustomerPhone(String customerPhone) { this.customerPhone = customerPhone; }
+
+    public String getCustomerEmail() { return customerEmail; }
+    public void setCustomerEmail(String customerEmail) { this.customerEmail = customerEmail; }
 
     public LocalDate getBookingDate() { return bookingDate; }
     public void setBookingDate(LocalDate bookingDate) { this.bookingDate = bookingDate; }

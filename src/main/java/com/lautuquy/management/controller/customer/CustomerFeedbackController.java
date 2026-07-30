@@ -35,15 +35,14 @@ public class CustomerFeedbackController {
 
     @GetMapping
     public String viewFeedbackPage(Authentication authentication, Model model) {
-        if (authentication == null) {
-            return "redirect:/auth/login";
-        }
-        String username = authentication.getName();
-        List<Feedback> userFeedbacks = feedbackService.getFeedbacksByCustomer(username);
+        String username = (authentication != null && authentication.isAuthenticated()) ? authentication.getName() : null;
+        List<Feedback> feedbacks = (username != null) 
+                ? feedbackService.getFeedbacksByCustomer(username) 
+                : feedbackService.getAllFeedbacks();
         List<Dish> availableDishes = dishService.getAllDishes();
-        Booking seatedBooking = bookingService.getActiveSeatedBooking(username);
+        Booking seatedBooking = (username != null) ? bookingService.getActiveSeatedBooking(username) : null;
 
-        model.addAttribute("feedbacks", userFeedbacks);
+        model.addAttribute("feedbacks", feedbacks);
         model.addAttribute("dishes", availableDishes);
         model.addAttribute("isSeated", seatedBooking != null);
         model.addAttribute("seatedBooking", seatedBooking);
@@ -58,14 +57,10 @@ public class CustomerFeedbackController {
                                                                  @RequestParam("content") String content,
                                                                  Authentication authentication) {
         Map<String, Object> response = new HashMap<>();
-        if (authentication == null) {
-            response.put("success", false);
-            response.put("message", "Vui lòng đăng nhập.");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        }
 
         try {
-            Feedback feedback = feedbackService.createFeedback(authentication.getName(), dishId, content);
+            String username = (authentication != null && authentication.isAuthenticated()) ? authentication.getName() : null;
+            Feedback feedback = feedbackService.createGuestOrUserFeedback(username, dishId, content);
             response.put("success", true);
             response.put("message", "Cảm ơn bạn đã gửi phản hồi cho Lẩu Tứ Quý!");
             response.put("feedbackId", feedback.getId());

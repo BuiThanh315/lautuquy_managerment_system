@@ -1126,10 +1126,10 @@
 
             <!-- Header Action Buttons -->
             <div class="landing-header-actions">
-                <!-- Nút Đặt Bàn Ngay -->
-                <button type="button" class="btn-header-booking">
+                <!-- Nút Đặt Bàn Ngay (Chuyển sang giao diện đặt bàn /customer/booking) -->
+                <a th:href="@{/customer/booking}" class="btn-header-booking">
                     <i class="bi bi-calendar-check-fill"></i> Đặt Bàn Ngay
-                </button>
+                </a>
 
                 <!-- Nút Đăng Nhập / Trang Cá Nhân -->
                 <th:block sec:authorize="isAnonymous()">
@@ -1280,9 +1280,9 @@
                                             <div class="landing-dish-footer">
                                                 <span class="landing-dish-price" th:text="${#numbers.formatDecimal(dish.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">89.000 đ</span>
                                                 <!-- Thay thế chữ 'Sẵn sàng' bằng Nút 'Đặt trước' -->
-                                                <button type="button" class="btn-dish-preorder" th:if="${dish.status.name() == 'AVAILABLE'}" onclick="event.stopPropagation();">
+                                                <a th:href="@{/customer/booking}" class="btn-dish-preorder" th:if="${dish.status.name() == 'AVAILABLE'}" onclick="event.stopPropagation();">
                                                     <i class="bi bi-clock-history"></i> Đặt trước
-                                                </button>
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
@@ -1687,9 +1687,9 @@
                                                 <p class="landing-dish-desc">${d.desc}</p>
                                                 <div class="landing-dish-footer">
                                                     <span class="landing-dish-price">${d.price}</span>
-                                                    <button type="button" class="btn-dish-preorder" onclick="event.stopPropagation();">
+                                                    <a href="/customer/booking" class="btn-dish-preorder" onclick="event.stopPropagation();">
                                                         <i class="bi bi-clock-history"></i> Đặt trước
-                                                    </button>
+                                                    </a>
                                                 </div>
                                             </div>
                                         </div>

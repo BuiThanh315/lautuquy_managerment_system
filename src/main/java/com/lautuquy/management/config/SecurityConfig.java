@@ -36,15 +36,13 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                // Tài nguyên tĩnh và trang công khai — cho phép tất cả
+                // Tài nguyên tĩnh và trang công khai — cho phép tất cả (Cho phép khách không cần đăng nhập vẫn dùng được các chức năng /customer/**)
                 .requestMatchers("/static/**", "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-                .requestMatchers("/", "/landing", "/customer/landing", "/auth/login", "/auth/register", "/error/**").permitAll()
+                .requestMatchers("/", "/landing", "/customer/**", "/auth/login", "/auth/register", "/error/**").permitAll()
                 // Vùng ADMIN — chỉ ROLE_ADMIN
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // Vùng STAFF — ROLE_STAFF và ROLE_ADMIN
                 .requestMatchers("/staff/**").hasAnyRole("STAFF", "ADMIN")
-                // Vùng CUSTOMER — chỉ ROLE_CUSTOMER
-                .requestMatchers("/customer/**").hasRole("CUSTOMER")
                 // Endpoint REST API
                 .requestMatchers("/api/**").permitAll()
                 // Tất cả request còn lại phải đăng nhập

@@ -8,7 +8,7 @@
     <title th:text="${pageTitle ?: 'Trang Chủ — Lẩu Tứ Quý'}">Trang Chủ — Lẩu Tứ Quý</title>
 
     <!-- Design System CSS -->
-    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css(v=5)}"/>
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
 
@@ -168,6 +168,7 @@
 
         /* Red-Orange Primary Header CTA: Đặt Bàn Ngay */
         .btn-header-booking {
+            position: relative !important;
             background: linear-gradient(135deg, #D53E0F 0%, #9B0F06 100%) !important;
             color: #ffffff !important;
             font-weight: 700 !important;
@@ -183,6 +184,28 @@
             text-decoration: none !important;
             transition: transform 0.2s ease, box-shadow 0.2s ease !important;
             white-space: nowrap !important;
+        }
+
+        .preorder-count-badge {
+            position: absolute !important;
+            top: -6px !important;
+            right: -6px !important;
+            background: #e74c3c !important;
+            color: #ffffff !important;
+            font-weight: 800 !important;
+            font-size: 0.72rem !important;
+            min-width: 20px !important;
+            height: 20px !important;
+            padding: 0 4px !important;
+            border-radius: 9999px !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            line-height: 1 !important;
+            border: 2px solid #ffffff !important;
+            z-index: 10 !important;
+            pointer-events: none !important;
         }
 
         .btn-header-booking:hover {
@@ -1280,9 +1303,15 @@
                                             <div class="landing-dish-footer">
                                                 <span class="landing-dish-price" th:text="${#numbers.formatDecimal(dish.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">89.000 đ</span>
                                                 <!-- Thay thế chữ 'Sẵn sàng' bằng Nút 'Đặt trước' -->
-                                                <a th:href="@{/customer/booking}" class="btn-dish-preorder" th:if="${dish.status.name() == 'AVAILABLE'}" onclick="event.stopPropagation();">
+                                                <button type="button" class="btn-dish-preorder" th:if="${dish.status.name() == 'AVAILABLE' and (dish.quantity == null or dish.quantity > 0)}"
+                                                        th:data-dish-id="${dish.id}"
+                                                        th:data-dish-name="${dish.name}"
+                                                        th:data-dish-price="${dish.price}"
+                                                        th:data-dish-img="${dish.imageUrl != null and !dish.imageUrl.isEmpty() ? dish.imageUrl : '/images/logo.png'}"
+                                                        th:data-max-qty="${dish.quantity != null ? dish.quantity : 99}"
+                                                        onclick="event.stopPropagation(); handleLandingPreorderClick(this)">
                                                     <i class="bi bi-clock-history"></i> Đặt trước
-                                                </a>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -1599,6 +1628,7 @@
     </div>
 
     <!-- Fallback & Interaction Scripts -->
+    <script th:src="@{/js/main.js(v=5)}"></script>
     <script th:inline="javascript">
         /*<![CDATA[*/
         document.addEventListener('DOMContentLoaded', function () {
@@ -1832,6 +1862,16 @@
         function forceCloseDishModal() {
             document.getElementById('dishModalOverlay').classList.remove('active');
             document.body.style.overflow = '';
+        }
+
+        function handleLandingPreorderClick(btn) {
+            const id = parseInt(btn.getAttribute('data-dish-id'), 10);
+            const name = btn.getAttribute('data-dish-name');
+            const price = parseFloat(btn.getAttribute('data-dish-price') || '0');
+            const img = btn.getAttribute('data-dish-img');
+            const maxQty = parseInt(btn.getAttribute('data-max-qty') || '99', 10);
+
+            addOrIncrementPreorder({ id, name, price, img, maxQty });
         }
         /*]]>*/
     </script>

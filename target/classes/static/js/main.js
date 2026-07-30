@@ -122,3 +122,112 @@ function showToast(message, type = 'success') {
         setTimeout(() => toast.remove(), 300);
     }, 3500);
 }
+
+/* ----------------------------------------------------------------
+   Preorder Manager (Quản Lý Danh Sách Món Đặt Trước qua Storage)
+   ---------------------------------------------------------------- */
+const PREORDER_STORAGE_KEY = 'lautuquy_preordered_dishes';
+
+function getPreordersFromStorage() {
+    try {
+        const data = sessionStorage.getItem(PREORDER_STORAGE_KEY) || localStorage.getItem(PREORDER_STORAGE_KEY);
+        return data ? JSON.parse(data) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function savePreordersToStorage(list) {
+    try {
+        sessionStorage.setItem(PREORDER_STORAGE_KEY, JSON.stringify(list));
+        localStorage.setItem(PREORDER_STORAGE_KEY, JSON.stringify(list));
+    } catch (e) {}
+    updatePreorderBadges();
+}
+
+function clearPreordersFromStorage() {
+    try {
+        sessionStorage.removeItem(PREORDER_STORAGE_KEY);
+        localStorage.removeItem(PREORDER_STORAGE_KEY);
+    } catch (e) {}
+    updatePreorderBadges();
+}
+
+function updatePreorderBadges() {
+    const list = getPreordersFromStorage();
+    // Tổng số lượng món ăn (tổng suất ăn) trong danh sách đặt trước
+    const count = list.reduce((total, item) => total + (parseInt(item.quantity, 10) || 1), 0);
+
+    // Chọn tất cả các nút đặt bàn trên các giao diện customer (Landing header, Topbar, Sidebar, Floating bar...)
+    const targetButtons = document.querySelectorAll('.btn-header-booking, .btn-gold, a[href="/customer/booking"]:not(.btn-dish-preorder), a[href$="/customer/booking"]:not(.btn-dish-preorder), a[href*="/customer/booking"]:not(.btn-dish-preorder)');
+    
+    targetButtons.forEach(btn => {
+        // Bỏ qua nếu href của nút không chứa đường dẫn đặt bàn (ví dụ nút khám phá thực đơn)
+        const href = btn.getAttribute('href') || '';
+        if (href && !href.includes('/customer/booking')) {
+            const oldBadge = btn.querySelector('.preorder-count-badge');
+            if (oldBadge) oldBadge.remove();
+            return;
+        }
+
+        // Đảm bảo nút cha có position relative để badge tuyệt đối đúng vị trí góc trên bên phải
+        if (window.getComputedStyle(btn).position === 'static') {
+            btn.style.position = 'relative';
+        }
+
+        let badge = btn.querySelector('.preorder-count-badge');
+        if (count > 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'preorder-count-badge';
+                btn.appendChild(badge);
+            }
+            badge.textContent = count;
+            badge.style.display = 'inline-flex';
+        } else {
+            if (badge) {
+                badge.remove();
+            }
+        }
+    });
+}
+
+function addOrIncrementPreorder(dish) {
+    // dish: { id, name, price, img, maxQty }
+    let list = getPreordersFromStorage();
+    let existingItem = list.find(item => item.id === dish.id);
+
+    if (existingItem) {
+        const max = dish.maxQty || 99;
+        if (existingItem.quantity < max) {
+            existingItem.quantity += 1;
+            showToast(`Đã tăng số lượng món '${dish.name}' thành ${existingItem.quantity} suất!`, 'success');
+        } else {
+            showToast(`Món '${dish.name}' chỉ còn tối đa ${max} suất!`, 'warning');
+        }
+    } else {
+        list.push({
+            id: dish.id,
+            name: dish.name,
+            price: dish.price,
+            img: dish.img || '/images/logo.png',
+            quantity: 1,
+            maxQty: dish.maxQty || 99
+        });
+        showToast(`Đã thêm món '${dish.name}' vào danh sách đặt trước!`, 'success');
+    }
+
+    savePreordersToStorage(list);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    updatePreorderBadges();
+});
+
+window.addEventListener('pageshow', () => {
+    updatePreorderBadges();
+});
+
+window.addEventListener('storage', () => {
+    updatePreorderBadges();
+});

@@ -2284,3 +2284,39 @@ html {
         font-size: 1.1rem;
     }
 }
+
+/* Badge đếm số món ăn trong danh sách đặt trước — Kiểu giỏ hàng */
+.btn-header-booking,
+a[href$="/customer/booking"],
+a[href*="/customer/booking"] {
+    position: relative !important;
+}
+
+.preorder-count-badge {
+    position: absolute !important;
+    top: -6px !important;
+    right: -6px !important;
+    background: #e74c3c !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    font-size: 0.72rem !important;
+    min-width: 20px !important;
+    height: 20px !important;
+    padding: 0 4px !important;
+    border-radius: 9999px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    border: 2px solid #ffffff !important;
+    z-index: 10 !important;
+    pointer-events: none !important;
+    animation: badgePop 0.3s ease !important;
+}
+
+@keyframes badgePop {
+    0% { transform: scale(0); }
+    60% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}

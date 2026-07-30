@@ -8,7 +8,7 @@
     <title th:text="${pageTitle ?: 'Đặt Bàn Trực Tuyến — Lẩu Tứ Quý'}">Đặt Bàn Trực Tuyến — Lẩu Tứ Quý</title>
 
     <!-- Design System CSS -->
-    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css(v=5)}"/>
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
 
@@ -129,6 +129,7 @@
         }
 
         .btn-header-booking {
+            position: relative !important;
             background: linear-gradient(135deg, #D53E0F 0%, #9B0F06 100%) !important;
             color: #ffffff !important;
             font-weight: 700 !important;
@@ -142,6 +143,28 @@
             align-items: center !important;
             gap: 8px !important;
             text-decoration: none !important;
+        }
+
+        .preorder-count-badge {
+            position: absolute !important;
+            top: -6px !important;
+            right: -6px !important;
+            background: #e74c3c !important;
+            color: #ffffff !important;
+            font-weight: 800 !important;
+            font-size: 0.72rem !important;
+            min-width: 20px !important;
+            height: 20px !important;
+            padding: 0 4px !important;
+            border-radius: 9999px !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            line-height: 1 !important;
+            border: 2px solid #ffffff !important;
+            z-index: 10 !important;
+            pointer-events: none !important;
         }
 
         .btn-header-auth {
@@ -878,7 +901,7 @@
     <!-- ================================================================
          JAVASCRIPT LOGIC DÀNH CHO BẢNG MÓN ĐẶT TRƯỚC VÀ FORM ĐẶT BÀN
          ================================================================ -->
-    <script th:src="@{/js/main.js}"></script>
+    <script th:src="@{/js/main.js(v=5)}"></script>
     <script>
         // Mảng chứa các món ăn được chọn đặt trước trong bộ nhớ local JS
         let selectedPreordersMap = new Map(); // dishId -> { id, name, price, img, quantity, maxQty }
@@ -995,6 +1018,7 @@
                 if (emptyContainer) emptyContainer.style.display = 'block';
                 totalElem.textContent = '0 đ';
                 depositElem.textContent = '0 đ';
+                savePreordersToStorage([]);
                 return;
             }
 
@@ -1052,12 +1076,29 @@
             const depositSum = totalSum * 0.5;
             totalElem.textContent = formatCurrency(totalSum);
             depositElem.textContent = formatCurrency(depositSum);
+
+            // Đồng bộ dữ liệu mới nhất với localStorage & Badge
+            savePreordersToStorage(Array.from(selectedPreordersMap.values()));
         }
 
         // Logic ngày giờ và nạp bàn trống via AJAX
         document.addEventListener('DOMContentLoaded', function () {
+            // Khôi phục danh sách món ăn đã đặt trước từ storage
+            const storedList = getPreordersFromStorage();
+            storedList.forEach(item => {
+                selectedPreordersMap.set(item.id, item);
+            });
+
             // Render trạng thái danh sách ban đầu
             renderPreorderTable();
+
+            // Xóa bộ nhớ đặt trước khi người dùng submit đơn đặt bàn thành công
+            const bookingForm = document.getElementById('bookingForm');
+            if (bookingForm) {
+                bookingForm.addEventListener('submit', function () {
+                    clearPreordersFromStorage();
+                });
+            }
 
             const dateInput = document.getElementById('bookingDate');
             const timeInput = document.getElementById('bookingTime');

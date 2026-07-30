@@ -294,7 +294,7 @@
             border-radius: 16px;
             border: 1px solid rgba(155, 15, 6, 0.15);
             background: #FFFFFF;
-            display: none; /* Mặc định ẩn nếu chưa chọn món */
+            display: none;
         }
 
         .preorder-table {
@@ -400,7 +400,7 @@
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 16px;
-            display: none; /* Mặc định ẩn nếu danh sách món trống */
+            display: none;
         }
 
         .summary-total-label {
@@ -681,7 +681,7 @@
             <!-- Thông báo Alert nếu Khách đang ngồi tại bàn -->
             <div th:if="${isSeated}" class="alert alert-danger" style="margin-bottom:24px; padding:14px 20px; border-radius:14px; box-shadow:0 4px 16px rgba(0,0,0,0.1);">
                 <i class="bi bi-exclamation-triangle-fill" style="font-size:1.2rem;"></i>
-                <span>Bạn đang ngồi tại bàn ăn (<strong th:text="${seatedBooking.assignedTable != null ? 'Bàn ' + seatedBooking.assignedTable.tableNumber : 'Bàn ăn'}"></strong>). Không thể tạo thêm đơn đặt bàn mới khi chưa hoàn tất!</span>
+                <span>Bạn đang ngồi tại bàn ăn (<strong th:text="${seatedBooking != null and seatedBooking.assignedTable != null ? 'Bàn ' + seatedBooking.assignedTable.tableNumber : 'Bàn ăn'}"></strong>). Không thể tạo thêm đơn đặt bàn mới khi chưa hoàn tất!</span>
             </div>
 
             <!-- Messages -->
@@ -692,8 +692,7 @@
                 <i class="bi bi-exclamation-circle-fill"></i> <span th:text="${errorMessage}"></span>
             </div>
 
-            <form th:action="@{/customer/booking}" method="post" th:object="${bookingRequest}" id="bookingForm">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <form action="/customer/booking" method="post" id="bookingForm">
 
                 <!-- Container cho Hidden Inputs gửi danh sách món preorder sang Controller -->
                 <div id="hiddenPreorderInputsContainer"></div>
@@ -706,33 +705,11 @@
                         <i class="bi bi-journal-check" style="color:#D53E0F;"></i> 1. Danh Sách Món Ăn Chọn Đặt Trước
                     </h2>
 
-                    <!-- Picker Nhanh Món Ăn Từ Thực Đơn Nhà Hàng -->
-                    <div style="margin-bottom:14px; font-weight:700; font-size:0.92rem; color:#5E0006;">
-                        <i class="bi bi-plus-circle-fill" style="color:#D53E0F;"></i> Bấm để chọn thêm món ăn vào danh sách đặt trước:
-                    </div>
-                    <div class="dish-picker-grid">
-                        <div th:each="dish : ${availableDishes}" class="dish-picker-card"
-                             th:data-dish-id="${dish.id}"
-                             th:data-dish-name="${dish.name}"
-                             th:data-dish-price="${dish.price}"
-                             th:data-dish-img="${dish.imageUrl != null ? dish.imageUrl : '/images/logo.png'}"
-                             th:data-max-qty="${dish.quantity}">
-                            <img th:src="${dish.imageUrl != null ? dish.imageUrl : '/images/logo.png'}" alt="Món ăn" class="dish-picker-img"/>
-                            <div class="dish-picker-info">
-                                <div class="dish-picker-name" th:text="${dish.name}">Tên món</div>
-                                <div class="dish-picker-price" th:text="${#numbers.formatDecimal(dish.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">89.000 đ</div>
-                            </div>
-                            <button type="button" class="btn-add-preorder" th:disabled="${dish.status.name() == 'OUT_OF_STOCK' || dish.quantity < 1}" onclick="addDishToPreorderList(this)">
-                                + Thêm
-                            </button>
-                        </div>
-                    </div>
-
                     <!-- Trường Hợp Danh Sách Trống (Chưa Thêm Món Ăn Nào) -->
-                    <div class="empty-preorder-container" id="emptyPreorderContainer" style="text-align:center; padding: 32px 20px; background: #FFF9F2; border-radius: 16px; border: 1.5px dashed rgba(155,15,6,0.2); margin-top: 10px;">
+                    <div class="empty-preorder-container" id="emptyPreorderContainer" style="text-align:center; padding: 36px 20px; background: #FFF9F2; border-radius: 16px; border: 1.5px dashed rgba(155,15,6,0.2); margin-top: 10px;">
                         <i class="bi bi-cart-x" style="font-size:2.4rem; color:#D53E0F; display:block; margin-bottom:8px;"></i>
                         <div style="font-size:1.05rem; font-weight:700; color:#5E0006; margin-bottom:4px;">Danh sách đặt trước hiện đang trống</div>
-                        <p style="font-size:0.88rem; color:#9a7060; margin-bottom:16px;">Quý khách có thể bấm chọn thêm món ở danh sách trên hoặc xem toàn bộ thực đơn phong phú của nhà hàng.</p>
+                        <p style="font-size:0.88rem; color:#9a7060; margin-bottom:16px;">Quý khách có thể xem toàn bộ thực đơn phong phú của nhà hàng để chọn món.</p>
                         <a th:href="@{/landing#menu}" href="/landing#menu" class="btn-header-booking" style="display:inline-flex; padding:8px 22px; text-decoration:none; font-size:0.9rem;">
                             <i class="bi bi-journal-richtext"></i> Đặt món ngay (Thực Đơn)
                         </a>
@@ -780,41 +757,40 @@
                         <!-- Tên Khách Hàng -->
                         <div>
                             <label class="form-label-custom" for="customerName">Tên Khách Hàng <span style="color:#D53E0F;">*</span></label>
-                            <input type="text" id="customerName" th:field="*{customerName}" class="form-input-custom" placeholder="Nhập họ và tên..." required />
+                            <input type="text" id="customerName" name="customerName" th:value="${bookingRequest?.customerName}" class="form-input-custom" placeholder="Nhập họ và tên..." required />
                         </div>
 
                         <!-- Số Điện Thoại -->
                         <div>
                             <label class="form-label-custom" for="customerPhone">Số Điện Thoại <span style="color:#D53E0F;">*</span></label>
-                            <input type="tel" id="customerPhone" th:field="*{customerPhone}" class="form-input-custom" placeholder="Ví dụ: 0912345678" required />
+                            <input type="tel" id="customerPhone" name="customerPhone" th:value="${bookingRequest?.customerPhone}" class="form-input-custom" placeholder="Ví dụ: 0912345678" required />
                         </div>
 
                         <!-- Email -->
                         <div>
                             <label class="form-label-custom" for="customerEmail">Email Khách Hàng</label>
-                            <input type="email" id="customerEmail" th:field="*{customerEmail}" class="form-input-custom" placeholder="khachhang@gmail.com" />
+                            <input type="email" id="customerEmail" name="customerEmail" th:value="${bookingRequest?.customerEmail}" class="form-input-custom" placeholder="khachhang@gmail.com" />
                         </div>
 
                         <!-- Ngày Đặt Bàn -->
                         <div>
                             <label class="form-label-custom" for="bookingDate">Ngày Đặt Bàn <span style="color:#D53E0F;">*</span></label>
-                            <input type="date" id="bookingDate" th:field="*{bookingDate}" class="form-input-custom" required />
-                            <span th:if="${#fields.hasErrors('bookingDate')}" th:errors="*{bookingDate}" style="font-size:0.78rem; color:#D53E0F; display:block; margin-top:2px;"></span>
+                            <input type="date" id="bookingDate" name="bookingDate" th:value="${bookingRequest?.bookingDate}" class="form-input-custom" required />
                         </div>
 
                         <!-- Giờ Đến -->
                         <div>
                             <label class="form-label-custom" for="bookingTime">Giờ Đến <span style="color:#D53E0F;">*</span></label>
-                            <input type="time" id="bookingTime" th:field="*{bookingTime}" class="form-input-custom" required />
-                            <span th:if="${#fields.hasErrors('bookingTime')}" th:errors="*{bookingTime}" style="font-size:0.78rem; color:#D53E0F; display:block; margin-top:2px;"></span>
+                            <input type="time" id="bookingTime" name="bookingTime" th:value="${bookingRequest?.bookingTime}" class="form-input-custom" required />
                         </div>
 
                         <!-- Loại Bàn -->
                         <div>
                             <label class="form-label-custom" for="tableTypeId">Loại Bàn <span style="color:#D53E0F;">*</span></label>
-                            <select id="tableTypeId" th:field="*{tableTypeId}" class="form-input-custom" required>
+                            <select id="tableTypeId" name="tableTypeId" class="form-input-custom" required>
                                 <option value="">-- Chọn loại bàn --</option>
                                 <option th:each="type : ${tableTypes}" th:value="${type.id}"
+                                        th:selected="${bookingRequest != null and bookingRequest.tableTypeId == type.id}"
                                         th:text="'Bàn ' + ${type.capacity} + ' người (' + ${type.tableClass} + ')'">
                                 </option>
                             </select>
@@ -824,7 +800,7 @@
                     <!-- Bàn (Danh Sách Bàn Ăn Cụ Thể Tải Qua AJAX) -->
                     <div style="margin-top:20px; display:none;" id="tableSelectGroup">
                         <label class="form-label-custom" for="tableId"><i class="bi bi-border-all" style="color:#D53E0F;"></i> Bàn (Danh Sách Bàn Ăn Cụ Thể Trong Hệ Thống)</label>
-                        <select id="tableId" th:field="*{tableId}" class="form-input-custom">
+                        <select id="tableId" name="tableId" class="form-input-custom">
                             <option value="">-- Chọn vị trí bàn ăn cụ thể --</option>
                         </select>
                         <small id="tableHelpText" style="font-size:0.78rem; color:#9a7060; display:block; margin-top:4px;"></small>
@@ -833,7 +809,7 @@
                     <!-- Ghi chú đặc biệt -->
                     <div style="margin-top:20px;">
                         <label class="form-label-custom" for="specialNotes">Ghi Chú Đặc Biệt</label>
-                        <textarea id="specialNotes" th:field="*{specialNotes}" class="form-input-custom" rows="3" placeholder="Ví dụ: Trang trí tiệc sinh nhật, góc phòng VIP yên tĩnh..."></textarea>
+                        <textarea id="specialNotes" name="specialNotes" th:text="${bookingRequest?.specialNotes}" class="form-input-custom" rows="3" placeholder="Ví dụ: Trang trí tiệc sinh nhật, góc phòng VIP yên tĩnh..."></textarea>
                     </div>
 
                     <!-- Submit Action Button Bar -->

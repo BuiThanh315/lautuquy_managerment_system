@@ -8,6 +8,8 @@ import com.lautuquy.management.service.BookingService;
 import com.lautuquy.management.service.DishService;
 import com.lautuquy.management.service.TableService;
 import jakarta.validation.Valid;
+import com.lautuquy.management.dto.response.BookingDetailDto;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,7 +20,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/customer/booking")
@@ -113,20 +117,84 @@ public class BookingController {
 
         try {
             String username = (principal != null) ? principal.getName() : null;
-            bookingService.createBooking(username, request);
+            Booking booking = bookingService.createBooking(username, request);
             tableLockService.releaseSessionLock(session.getId());
+            
+            redirectAttributes.addFlashAttribute("bookingSuccess", true);
+            redirectAttributes.addFlashAttribute("createdBookingId", booking.getId());
+
             if (principal == null) {
                 redirectAttributes.addFlashAttribute("successMessage", "Đặt bàn thành công! Lễ tân Lẩu Tứ Quý sẽ liên hệ xác nhận qua SĐT " + request.getCustomerPhone());
                 return "redirect:/customer/booking";
             }
             redirectAttributes.addFlashAttribute("successMessage", "Đặt bàn thành công! Đơn của bạn đang chờ nhà hàng tiếp nhận.");
-            return "redirect:/customer/booking/history";
+            return "redirect:/customer/booking";
         } catch (Exception e) {
             model.addAttribute("errorMessage", "Không thể tạo đơn đặt bàn: " + e.getMessage());
             model.addAttribute("tableTypes", tableService.getAllTableTypes());
             List<Dish> availableDishes = dishService.getAllDishes();
             model.addAttribute("availableDishes", availableDishes);
             return "customer/booking-form";
+        }
+    }
+
+    @PostMapping("/api-submit")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> submitBookingApi(
+            @Valid @ModelAttribute("bookingRequest") BookingRequest request,
+            BindingResult bindingResult,
+            Principal principal,
+            jakarta.servlet.http.HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        if (principal != null) {
+            Booking seatedBooking = bookingService.getActiveSeatedBooking(principal.getName());
+            if (seatedBooking != null) {
+                response.put("success", false);
+                response.put("message", "Bạn đang ngồi tại bàn ăn (" + (seatedBooking.getAssignedTable() != null ? "Bàn " + seatedBooking.getAssignedTable().getTableNumber() : "Bàn ăn") + "). Không thể tạo thêm đơn đặt bàn mới khi chưa hoàn tất!");
+                return ResponseEntity.badRequest().body(response);
+            }
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+
+        if (request.getBookingDate() != null && request.getBookingDate().isBefore(today)) {
+            bindingResult.rejectValue("bookingDate", "error.bookingDate", "Ngày đặt bàn không thể ở trong quá khứ.");
+        }
+        if (request.getBookingDate() != null && request.getBookingDate().isEqual(today)) {
+            if (request.getBookingTime() != null && request.getBookingTime().isBefore(now)) {
+                bindingResult.rejectValue("bookingTime", "error.bookingTime", "Giờ đặt bàn không thể trước thời gian hiện tại.");
+            }
+        }
+
+        if (bindingResult.hasErrors()) {
+            String errorMsg = bindingResult.getAllErrors().stream()
+                    .map(org.springframework.context.MessageSourceResolvable::getDefaultMessage)
+                    .reduce((a, b) -> a + "; " + b)
+                    .orElse("Dữ liệu nhập vào không hợp lệ.");
+            response.put("success", false);
+            response.put("message", errorMsg);
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        try {
+            String username = (principal != null) ? principal.getName() : null;
+            Booking savedBooking = bookingService.createBooking(username, request);
+            tableLockService.releaseSessionLock(session.getId());
+
+            BookingDetailDto detail = bookingService.getBookingDetail(savedBooking.getId());
+
+            response.put("success", true);
+            response.put("bookingId", savedBooking.getId());
+            response.put("message", "Đặt bàn thành công!");
+            response.put("bookingDetail", detail);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Không thể tạo đơn đặt bàn: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 

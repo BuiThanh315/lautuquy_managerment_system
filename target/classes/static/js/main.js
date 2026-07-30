@@ -155,8 +155,8 @@ function clearPreordersFromStorage() {
 
 function updatePreorderBadges() {
     const list = getPreordersFromStorage();
-    // Tổng số lượng món ăn (tổng suất ăn) trong danh sách đặt trước
-    const count = list.reduce((total, item) => total + (parseInt(item.quantity, 10) || 1), 0);
+    // Số món ăn (số loại món) trong danh sách đặt trước
+    const count = list.length;
 
     // Chọn tất cả các nút đặt bàn trên các giao diện customer (Landing header, Topbar, Sidebar, Floating bar...)
     const targetButtons = document.querySelectorAll('.btn-header-booking, .btn-gold, a[href="/customer/booking"]:not(.btn-dish-preorder), a[href$="/customer/booking"]:not(.btn-dish-preorder), a[href*="/customer/booking"]:not(.btn-dish-preorder)');

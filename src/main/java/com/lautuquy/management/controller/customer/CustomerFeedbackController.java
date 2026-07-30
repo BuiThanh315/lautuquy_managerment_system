@@ -55,16 +55,18 @@ public class CustomerFeedbackController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> submitFeedbackAjax(@RequestParam(value = "dishId", required = false) Long dishId,
                                                                  @RequestParam("content") String content,
+                                                                 @RequestParam(value = "rating", required = false, defaultValue = "5") Integer rating,
                                                                  Authentication authentication) {
         Map<String, Object> response = new HashMap<>();
 
         try {
             String username = (authentication != null && authentication.isAuthenticated()) ? authentication.getName() : null;
-            Feedback feedback = feedbackService.createGuestOrUserFeedback(username, dishId, content);
+            Feedback feedback = feedbackService.createGuestOrUserFeedback(username, dishId, content, rating);
             response.put("success", true);
             response.put("message", "Cảm ơn bạn đã gửi phản hồi cho Lẩu Tứ Quý!");
             response.put("feedbackId", feedback.getId());
             response.put("content", feedback.getContent());
+            response.put("rating", feedback.getRating());
             response.put("dishName", feedback.getDish() != null ? feedback.getDish().getName() : "Ý kiến chung");
             return ResponseEntity.ok(response);
         } catch (Exception e) {

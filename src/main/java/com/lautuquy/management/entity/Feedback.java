@@ -25,15 +25,25 @@ public class Feedback {
     @Column(name = "reply", columnDefinition = "TEXT")
     private String reply;
 
+    @Column(name = "rating", nullable = false)
+    private Integer rating = 5;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    public Feedback() {}
+    public Feedback() {
+        this.rating = 5;
+    }
 
     public Feedback(Account account, Dish dish, String content) {
+        this(account, dish, content, 5);
+    }
+
+    public Feedback(Account account, Dish dish, String content, Integer rating) {
         this.account = account;
         this.dish = dish;
         this.content = content;
+        this.rating = (rating != null && rating >= 1 && rating <= 5) ? rating : 5;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -82,6 +92,14 @@ public class Feedback {
 
     public void setReply(String reply) {
         this.reply = reply;
+    }
+
+    public Integer getRating() {
+        return rating != null ? rating : 5;
+    }
+
+    public void setRating(Integer rating) {
+        this.rating = (rating != null && rating >= 1 && rating <= 5) ? rating : 5;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -96,6 +96,7 @@
                                 <tr>
                                     <th>Khách hàng</th>
                                     <th>Món ăn / Đối tượng</th>
+                                    <th>Đánh giá</th>
                                     <th>Nội dung góp ý</th>
                                     <th>Trả lời từ Admin</th>
                                     <th>Thời gian</th>
@@ -110,6 +111,9 @@
                                     </td>
                                     <td>
                                         <span class="badge badge-info" th:text="${fb.dish != null ? fb.dish.name : 'Chung'}"></span>
+                                    </td>
+                                    <td style="color:#FFD700; font-size:0.85rem; white-space:nowrap;">
+                                        <i th:each="i : ${#numbers.sequence(1, fb.rating != null ? fb.rating : 5)}" class="bi bi-star-fill"></i><i th:each="i : ${#numbers.sequence((fb.rating != null ? fb.rating : 5) + 1, 5)}" th:if="${(fb.rating != null ? fb.rating : 5) < 5}" class="bi bi-star"></i>
                                     </td>
                                     <td style="max-width:250px;" th:text="${fb.content ?: '—'}"></td>
                                     <td class="reply-cell">
@@ -129,7 +133,7 @@
                                     </td>
                                 </tr>
                                 <tr th:if="${feedbacks == null || feedbacks.isEmpty()}">
-                                    <td colspan="6" style="text-align:center; padding:36px; color:var(--clr-text-muted);">
+                                    <td colspan="7" style="text-align:center; padding:36px; color:var(--clr-text-muted);">
                                         Chưa có phản hồi nào từ khách hàng.
                                     </td>
                                 </tr>

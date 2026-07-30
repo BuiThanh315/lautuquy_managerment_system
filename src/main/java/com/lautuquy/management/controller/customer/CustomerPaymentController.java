@@ -46,14 +46,14 @@ public class CustomerPaymentController {
     public String viewCustomerPayment(Authentication authentication, Model model, RedirectAttributes redirectAttributes) {
         if (authentication == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Bạn chưa được nhận bàn tại nhà hàng để thực hiện thanh toán.");
-            return "redirect:/customer/menu";
+            return "redirect:/customer/landing";
         }
         String username = authentication.getName();
         Booking seatedBooking = bookingService.getActiveSeatedBooking(username);
 
         if (seatedBooking == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Bạn chưa được nhận bàn tại nhà hàng để thực hiện thanh toán.");
-            return "redirect:/customer/menu";
+            return "redirect:/customer/landing";
         }
 
         Order activeOrder = orderService.getOrCreateActiveOrderForBooking(seatedBooking.getId());

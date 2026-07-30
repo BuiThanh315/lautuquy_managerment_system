@@ -90,7 +90,7 @@ public class SecurityConfig {
             } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_STAFF"))) {
                 redirectUrl = "/staff/bookings";
             } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"))) {
-                redirectUrl = "/customer/menu";
+                redirectUrl = "/customer/landing";
             }
 
             response.sendRedirect(request.getContextPath() + redirectUrl);

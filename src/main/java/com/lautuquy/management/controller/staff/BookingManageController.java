@@ -49,15 +49,18 @@ public class BookingManageController {
 
         // Lấy danh sách hóa đơn tương ứng với các đơn đặt bàn (để kiểm tra xem khách đã thanh toán chưa)
         java.util.Map<Long, Invoice> invoiceMap = new java.util.HashMap<>();
+        java.util.Map<Long, com.lautuquy.management.dto.response.BookingDetailDto> bookingDetailsMap = new java.util.HashMap<>();
         for (Booking b : filteredBookings) {
             Invoice inv = invoiceService.getInvoiceByBookingId(b.getId());
             if (inv != null) {
                 invoiceMap.put(b.getId(), inv);
             }
+            bookingDetailsMap.put(b.getId(), bookingService.getBookingDetail(b.getId()));
         }
 
         model.addAttribute("bookings", filteredBookings);
         model.addAttribute("invoiceMap", invoiceMap);
+        model.addAttribute("bookingDetailsMap", bookingDetailsMap);
         model.addAttribute("selectedStatus", statusFilter != null ? statusFilter : "ALL");
         model.addAttribute("emptyTables", emptyTables);
         model.addAttribute("pageTitle", "Quản Lý Đặt Bàn — Staff");

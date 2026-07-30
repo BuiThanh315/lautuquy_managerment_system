@@ -8,7 +8,11 @@ public interface FeedbackService {
 
     Feedback createFeedback(String username, Long dishId, String content);
 
+    Feedback createFeedback(String username, Long dishId, String content, Integer rating);
+
     Feedback createGuestOrUserFeedback(String username, Long dishId, String content);
+
+    Feedback createGuestOrUserFeedback(String username, Long dishId, String content, Integer rating);
 
     Feedback replyFeedback(Long feedbackId, String replyContent);
 

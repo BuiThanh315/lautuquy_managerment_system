@@ -43,14 +43,14 @@ public class CustomerOrderController {
     public String viewCustomerOrder(Authentication authentication, Model model, RedirectAttributes redirectAttributes) {
         if (authentication == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Bạn chưa nhận bàn ăn tại nhà hàng.");
-            return "redirect:/customer/menu";
+            return "redirect:/customer/landing";
         }
         String username = authentication.getName();
         Booking seatedBooking = bookingService.getActiveSeatedBooking(username);
 
         if (seatedBooking == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Bạn chưa có bàn ăn nào đang phục vụ.");
-            return "redirect:/customer/menu";
+            return "redirect:/customer/landing";
         }
 
         Order activeOrder = orderService.getOrCreateActiveOrderForBooking(seatedBooking.getId());
@@ -225,7 +225,7 @@ public class CustomerOrderController {
 
         if (seatedBooking == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Bạn chưa được nhận bàn tại nhà hàng để gọi món.");
-            return "redirect:/customer/menu";
+            return "redirect:/customer/landing";
         }
 
         try {
@@ -236,7 +236,7 @@ public class CustomerOrderController {
             redirectAttributes.addFlashAttribute("errorMessage", "Không thể thêm món: " + e.getMessage());
         }
 
-        return "redirect:/customer/menu";
+        return "redirect:/customer/landing";
     }
 
     /**

@@ -31,12 +31,24 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     @Transactional
     public Feedback createFeedback(String username, Long dishId, String content) {
-        return createGuestOrUserFeedback(username, dishId, content);
+        return createGuestOrUserFeedback(username, dishId, content, 5);
+    }
+
+    @Override
+    @Transactional
+    public Feedback createFeedback(String username, Long dishId, String content, Integer rating) {
+        return createGuestOrUserFeedback(username, dishId, content, rating);
     }
 
     @Override
     @Transactional
     public Feedback createGuestOrUserFeedback(String username, Long dishId, String content) {
+        return createGuestOrUserFeedback(username, dishId, content, 5);
+    }
+
+    @Override
+    @Transactional
+    public Feedback createGuestOrUserFeedback(String username, Long dishId, String content, Integer rating) {
         if (content == null || content.trim().isEmpty()) {
             throw new IllegalArgumentException("Nội dung phản hồi không được để trống.");
         }
@@ -51,7 +63,8 @@ public class FeedbackServiceImpl implements FeedbackService {
             dish = dishRepository.findById(dishId).orElse(null);
         }
 
-        Feedback feedback = new Feedback(account, dish, content.trim());
+        int validRating = (rating != null && rating >= 1 && rating <= 5) ? rating : 5;
+        Feedback feedback = new Feedback(account, dish, content.trim(), validRating);
         return feedbackRepository.save(feedback);
     }
 

@@ -40,6 +40,7 @@ com\lautuquy\management\controller\admin\AdminDashboardController.class
 com\lautuquy\management\service\impl\AccountServiceImpl.class
 com\lautuquy\management\dto\request\PreorderItemRequest.class
 com\lautuquy\management\dto\response\TableOptionDto.class
+com\lautuquy\management\service\impl\BookingServiceImpl$1.class
 com\lautuquy\management\controller\customer\CustomerFeedbackController.class
 com\lautuquy\management\service\impl\OrderServiceImpl.class
 com\lautuquy\management\dto\request\TableRequest.class

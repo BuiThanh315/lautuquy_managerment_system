@@ -13,14 +13,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.lautuquy.management.dto.response.BookingDetailDto;
+import com.lautuquy.management.service.BookingService;
+
 @RestController
 @RequestMapping("/api/booking")
 public class BookingApiController {
 
     private final TableLockService tableLockService;
+    private final BookingService bookingService;
 
-    public BookingApiController(TableLockService tableLockService) {
+    public BookingApiController(TableLockService tableLockService, BookingService bookingService) {
         this.tableLockService = tableLockService;
+        this.bookingService = bookingService;
+    }
+
+    @GetMapping("/{id}/details")
+    public ResponseEntity<BookingDetailDto> getBookingDetail(@PathVariable("id") Long id) {
+        try {
+            BookingDetailDto detail = bookingService.getBookingDetail(id);
+            return ResponseEntity.ok(detail);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/tables")

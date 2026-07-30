@@ -22,8 +22,8 @@
             </div>
             <div class="sidebar-nav">
                 <div class="nav-section-title">Khách hàng</div>
-                <a th:href="@{/customer/menu}" class="nav-item">
-                    <i class="bi bi-journal-text nav-icon"></i><span>Thực đơn</span>
+                <a th:href="@{/customer/landing}" class="nav-item">
+                    <i class="bi bi-house-door-fill nav-icon"></i><span>Trang chủ</span>
                 </a>
                 <a th:if="${isSeated}" th:href="@{/customer/order}" class="nav-item">
                     <i class="bi bi-cart-fill nav-icon"></i><span>Gọi món</span>
@@ -89,14 +89,27 @@
                         </div>
                         <div style="padding:24px;">
                             <form id="feedback-form" th:action="@{/customer/feedback/submit-ajax}" method="post" onsubmit="submitFeedbackAjax(event, this)">
-                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-
-                                <div class="form-group mb-md">
+                                <input                                 <div class="form-group mb-md">
                                     <label class="form-label">Chọn món ăn cần nhận xét (Tùy chọn):</label>
                                     <select name="dishId" class="form-control">
                                         <option value="">-- Ý kiến nhận xét chung về nhà hàng --</option>
                                         <option th:each="dish : ${dishes}" th:value="${dish.id}" th:text="${dish.name}"></option>
                                     </select>
+                                </div>
+
+                                <div class="form-group mb-md">
+                                    <label class="form-label">Đánh giá số sao: <span style="color:var(--clr-coral);">*</span></label>
+                                    <div style="display:flex; align-items:center; gap:12px; margin-top:4px;">
+                                        <input type="hidden" name="rating" id="feedbackRatingInput" value="5" data-selected-rating="5" />
+                                        <div id="starPickerContainer" style="display:flex; gap:8px; font-size:1.6rem; color:#FFD700; cursor:pointer;">
+                                            <i class="bi bi-star-fill star-icon" data-rating="1" title="1 sao"></i>
+                                            <i class="bi bi-star-fill star-icon" data-rating="2" title="2 sao"></i>
+                                            <i class="bi bi-star-fill star-icon" data-rating="3" title="3 sao"></i>
+                                            <i class="bi bi-star-fill star-icon" data-rating="4" title="4 sao"></i>
+                                            <i class="bi bi-star-fill star-icon" data-rating="5" title="5 sao"></i>
+                                        </div>
+                                        <span id="starRatingLabel" style="font-size:0.88rem; font-weight:600; color:var(--clr-text-muted);">5 / 5 sao (Xuất sắc)</span>
+                                    </div>
                                 </div>
 
                                 <div class="form-group mb-lg">
@@ -123,7 +136,12 @@
                             <div th:each="fb : ${feedbacks}" class="card mb-md" style="padding:16px; background:var(--clr-surface-2); border:1px solid var(--clr-border);">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                                     <span class="badge badge-info" th:text="${fb.dish != null ? '🍲 ' + fb.dish.name : '💬 Ý kiến chung'}"></span>
-                                    <span style="font-size:0.75rem; color:var(--clr-text-muted);" th:text="${#temporals.format(fb.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <div style="color:#FFD700; font-size:0.85rem;">
+                                            <i th:each="i : ${#numbers.sequence(1, fb.rating != null ? fb.rating : 5)}" class="bi bi-star-fill"></i><i th:each="i : ${#numbers.sequence((fb.rating != null ? fb.rating : 5) + 1, 5)}" th:if="${(fb.rating != null ? fb.rating : 5) < 5}" class="bi bi-star"></i>
+                                        </div>
+                                        <span style="font-size:0.75rem; color:var(--clr-text-muted);" th:text="${#temporals.format(fb.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                    </div>
                                 </div>
                                 <div style="font-size:0.9rem; color:var(--clr-text-primary); margin-bottom:8px;" th:text="${fb.content}"></div>
 
@@ -144,6 +162,7 @@
                                 Bạn chưa có phản hồi nào. Hãy gửi ý kiến đóng góp cho nhà hàng nhé!
                             </div>
                         </div>
+
                     </div>
 
                 </div>
@@ -157,6 +176,56 @@
 
     <script th:src="@{/js/main.js(v=5)}"></script>
     <script>
+        const starLabels = {
+            1: '1 / 5 sao (Rất tệ)',
+            2: '2 / 5 sao (Chưa hài lòng)',
+            3: '3 / 5 sao (Bình thường)',
+            4: '4 / 5 sao (Hài lòng)',
+            5: '5 / 5 sao (Xuất sắc)'
+        };
+
+        function setupStarPicker(containerId, inputId, labelId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const input = document.getElementById(inputId);
+            const label = document.getElementById(labelId);
+            const stars = container.querySelectorAll('.star-icon');
+
+            function updateDisplay(val) {
+                stars.forEach(star => {
+                    const r = parseInt(star.getAttribute('data-rating'), 10);
+                    if (r <= val) {
+                        star.className = 'bi bi-star-fill star-icon';
+                    } else {
+                        star.className = 'bi bi-star star-icon';
+                    }
+                });
+                if (label) label.textContent = starLabels[val] || (val + ' / 5 sao');
+            }
+
+            stars.forEach(star => {
+                star.addEventListener('mouseover', function() {
+                    const r = parseInt(this.getAttribute('data-rating'), 10);
+                    updateDisplay(r);
+                });
+                star.addEventListener('click', function() {
+                    const r = parseInt(this.getAttribute('data-rating'), 10);
+                    input.value = r;
+                    input.setAttribute('data-selected-rating', r);
+                    updateDisplay(r);
+                });
+            });
+
+            container.addEventListener('mouseleave', function() {
+                const currentVal = parseInt(input.getAttribute('data-selected-rating') || input.value || '5', 10);
+                updateDisplay(currentVal);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setupStarPicker('starPickerContainer', 'feedbackRatingInput', 'starRatingLabel');
+        });
+
         async function submitFeedbackAjax(e, form) {
             e.preventDefault();
             const btn = form.querySelector('button[type="submit"]');
@@ -176,10 +245,29 @@
                     showToast(data.message, 'success');
                     form.reset();
 
+                    // Reset star rating to 5
+                    const ratingInput = document.getElementById('feedbackRatingInput');
+                    if (ratingInput) {
+                        ratingInput.value = '5';
+                        ratingInput.setAttribute('data-selected-rating', '5');
+                    }
+                    const container = document.getElementById('starPickerContainer');
+                    if (container) {
+                        container.querySelectorAll('.star-icon').forEach(s => s.className = 'bi bi-star-fill star-icon');
+                    }
+                    const starLabel = document.getElementById('starRatingLabel');
+                    if (starLabel) starLabel.textContent = '5 / 5 sao (Xuất sắc)';
+
                     // Prepend new feedback card dynamically to list
                     const list = document.getElementById('feedback-list');
                     const emptyMsg = list.querySelector('div[style*="text-align:center"]');
                     if (emptyMsg) emptyMsg.remove();
+
+                    const ratingVal = data.rating || 5;
+                    let starsHtml = '';
+                    for (let i = 1; i <= 5; i++) {
+                        starsHtml += i <= ratingVal ? '<i class="bi bi-star-fill"></i>' : '<i class="bi bi-star"></i>';
+                    }
 
                     const newCard = document.createElement('div');
                     newCard.className = 'card mb-md';
@@ -189,7 +277,10 @@
                     newCard.innerHTML = `
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                             <span class="badge badge-info">${data.dishName}</span>
-                            <span style="font-size:0.75rem; color:var(--clr-text-muted);">Vừa xong</span>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div style="color:#FFD700; font-size:0.85rem;">${starsHtml}</div>
+                                <span style="font-size:0.75rem; color:var(--clr-text-muted);">Vừa xong</span>
+                            </div>
                         </div>
                         <div style="font-size:0.9rem; color:var(--clr-text-primary); margin-bottom:8px;">${data.content}</div>
                         <div style="font-size:0.75rem; color:var(--clr-text-muted); font-style:italic;">(Đang chờ nhà hàng phản hồi)</div>

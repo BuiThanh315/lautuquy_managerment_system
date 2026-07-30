@@ -100,11 +100,11 @@
             <!-- CUSTOMER Navigation -->
             <th:block sec:authorize="hasRole('CUSTOMER')">
                 <div class="nav-section-title">Khách hàng</div>
-                <a th:href="@{/customer/menu}"
-                   th:classappend="${#strings.startsWith(#httpServletRequest.requestURI, '/customer/menu') ? ' active' : ''}"
+                <a th:href="@{/customer/landing}"
+                   th:classappend="${#strings.startsWith(#httpServletRequest.requestURI, '/customer/landing') or #strings.startsWith(#httpServletRequest.requestURI, '/landing') ? ' active' : ''}"
                    class="nav-item">
-                    <i class="bi bi-journal-text nav-icon"></i>
-                    <span>Thực đơn</span>
+                    <i class="bi bi-house-door-fill nav-icon"></i>
+                    <span>Trang chủ</span>
                 </a>
                 <a th:href="@{/customer/booking}"
                    th:classappend="${#strings.startsWith(#httpServletRequest.requestURI, '/customer/booking') ? ' active' : ''}"

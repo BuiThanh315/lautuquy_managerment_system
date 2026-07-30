@@ -85,6 +85,7 @@ public class CustomerLandingController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> submitLandingFeedback(@RequestParam(value = "dishId", required = false) Long dishId,
                                                                       @RequestParam("content") String content,
+                                                                      @RequestParam(value = "rating", required = false, defaultValue = "5") Integer rating,
                                                                       Authentication authentication) {
         Map<String, Object> response = new HashMap<>();
         if (content == null || content.trim().isEmpty()) {
@@ -95,7 +96,7 @@ public class CustomerLandingController {
 
         try {
             String username = (authentication != null && authentication.isAuthenticated()) ? authentication.getName() : null;
-            Feedback feedback = feedbackService.createGuestOrUserFeedback(username, dishId, content);
+            Feedback feedback = feedbackService.createGuestOrUserFeedback(username, dishId, content, rating);
 
             String authorName = "Khách hàng";
             if (feedback.getAccount() != null && feedback.getAccount().getFullName() != null) {
@@ -112,6 +113,7 @@ public class CustomerLandingController {
             response.put("authorName", authorName);
             response.put("dishName", dishName);
             response.put("content", feedback.getContent());
+            response.put("rating", feedback.getRating());
             response.put("dateFormatted", dateFormatted);
             return ResponseEntity.ok(response);
         } catch (Exception e) {

@@ -250,4 +250,69 @@ public class BookingServiceImpl implements BookingService {
         return bookingRepository.findTopByAccountIdAndStatusOrderByCreatedAtDesc(account.getId(), Booking.Status.SEATED)
                 .orElse(null);
     }
+
+    @Override
+    public com.lautuquy.management.dto.response.BookingDetailDto getBookingDetail(Long id) {
+        Booking b = getBookingById(id);
+        List<BookingPreorder> preorders = getPreordersByBookingId(id);
+
+        com.lautuquy.management.dto.response.BookingDetailDto dto = new com.lautuquy.management.dto.response.BookingDetailDto();
+        dto.setId(b.getId());
+        dto.setCustomerName(b.getCustomerName());
+        dto.setCustomerPhone(b.getCustomerPhone());
+        dto.setBookingDate(b.getBookingDate() != null ? b.getBookingDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
+        dto.setBookingTime(b.getBookingTime() != null ? b.getBookingTime().toString() : "");
+
+        if (b.getTableType() != null) {
+            dto.setTableTypeName("Bàn " + b.getTableType().getCapacity() + " người (" + b.getTableType().getTableClass() + ")");
+        } else {
+            dto.setTableTypeName("—");
+        }
+
+        if (b.getAssignedTable() != null) {
+            dto.setTableName("Bàn " + b.getAssignedTable().getTableNumber());
+        } else {
+            dto.setTableName("Chưa xếp bàn");
+        }
+
+        dto.setSpecialNotes(b.getSpecialNotes() != null && !b.getSpecialNotes().isBlank() ? b.getSpecialNotes() : "—");
+        dto.setStatus(b.getStatus().name());
+
+        String statusDisplay = switch (b.getStatus()) {
+            case PENDING -> "Chờ duyệt";
+            case CONFIRMED -> "Đã xác nhận";
+            case SEATED -> "Đã nhận bàn";
+            case COMPLETED -> "Hoàn tất";
+            case CANCELLED -> "Đã hủy";
+        };
+        dto.setStatusDisplayName(statusDisplay);
+        dto.setCreatedAt(b.getCreatedAt() != null ? b.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "");
+        dto.setOverdue(b.isOverdue());
+
+        java.math.BigDecimal total = java.math.BigDecimal.ZERO;
+        List<com.lautuquy.management.dto.response.BookingDetailDto.PreorderItemDto> itemDtos = new java.util.ArrayList<>();
+        for (BookingPreorder po : preorders) {
+            Dish dish = po.getDish();
+            java.math.BigDecimal price = (dish != null && dish.getPrice() != null) ? dish.getPrice() : java.math.BigDecimal.ZERO;
+            int qty = po.getQuantity() != null ? po.getQuantity() : 0;
+            java.math.BigDecimal itemTotal = price.multiply(java.math.BigDecimal.valueOf(qty));
+            total = total.add(itemTotal);
+
+            com.lautuquy.management.dto.response.BookingDetailDto.PreorderItemDto itemDto = new com.lautuquy.management.dto.response.BookingDetailDto.PreorderItemDto(
+                    dish != null ? dish.getId() : null,
+                    dish != null ? dish.getName() : "Món ăn",
+                    dish != null ? dish.getImageUrl() : "",
+                    price,
+                    qty,
+                    itemTotal
+            );
+            itemDtos.add(itemDto);
+        }
+
+        dto.setTotalAmount(total);
+        dto.setDepositAmount(total.multiply(new java.math.BigDecimal("0.50"))); // Tiền cọc (50%)
+        dto.setPreorders(itemDtos);
+
+        return dto;
+    }
 }

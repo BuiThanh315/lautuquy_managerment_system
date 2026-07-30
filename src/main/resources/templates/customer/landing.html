@@ -1162,7 +1162,7 @@
                 </th:block>
                 <th:block sec:authorize="isAuthenticated()">
                     <th:block sec:authorize="hasRole('CUSTOMER')">
-                        <a th:href="@{/customer/menu}" class="btn-header-auth">
+                        <a th:href="@{/customer/landing}" class="btn-header-auth">
                             <i class="bi bi-person-circle"></i> Trang Cá Nhân
                         </a>
                     </th:block>
@@ -1398,6 +1398,23 @@
                                 </select>
                             </div>
 
+                            <div style="margin-bottom: 16px;">
+                                <label style="display:block; font-weight:700; font-size:0.88rem; color:#5E0006; margin-bottom:6px;">
+                                    <i class="bi bi-star-fill" style="color:#FFD700;"></i> Đánh giá số sao: <span style="color:#D53E0F;">*</span>
+                                </label>
+                                <div style="display:flex; align-items:center; gap:12px; margin-top:4px;">
+                                    <input type="hidden" id="landingFeedbackRating" value="5" data-selected-rating="5" />
+                                    <div id="landingStarPickerContainer" style="display:flex; gap:8px; font-size:1.6rem; color:#FFD700; cursor:pointer;">
+                                        <i class="bi bi-star-fill landing-star-icon" data-rating="1" title="1 sao"></i>
+                                        <i class="bi bi-star-fill landing-star-icon" data-rating="2" title="2 sao"></i>
+                                        <i class="bi bi-star-fill landing-star-icon" data-rating="3" title="3 sao"></i>
+                                        <i class="bi bi-star-fill landing-star-icon" data-rating="4" title="4 sao"></i>
+                                        <i class="bi bi-star-fill landing-star-icon" data-rating="5" title="5 sao"></i>
+                                    </div>
+                                    <span id="landingStarRatingLabel" style="font-size:0.88rem; font-weight:600; color:#9a7060;">5 / 5 sao (Xuất sắc)</span>
+                                </div>
+                            </div>
+
                             <div style="margin-bottom: 20px;">
                                 <label style="display:block; font-weight:700; font-size:0.88rem; color:#5E0006; margin-bottom:6px;">
                                     <i class="bi bi-chat-left-text-fill"></i> Nội dung đánh giá &amp; góp ý <span style="color:#D53E0F;">*</span>:
@@ -1443,7 +1460,7 @@
                                                 </div>
                                             </div>
                                             <div style="color:#FFD700; font-size:0.88rem;">
-                                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                                <i th:each="i : ${#numbers.sequence(1, fb.rating != null ? fb.rating : 5)}" class="bi bi-star-fill"></i><i th:each="i : ${#numbers.sequence((fb.rating != null ? fb.rating : 5) + 1, 5)}" th:if="${(fb.rating != null ? fb.rating : 5) < 5}" class="bi bi-star"></i>
                                             </div>
                                         </div>
 
@@ -1631,7 +1648,54 @@
     <script th:src="@{/js/main.js(v=5)}"></script>
     <script th:inline="javascript">
         /*<![CDATA[*/
+        const landingStarLabels = {
+            1: '1 / 5 sao (Rất tệ)',
+            2: '2 / 5 sao (Chưa hài lòng)',
+            3: '3 / 5 sao (Bình thường)',
+            4: '4 / 5 sao (Hài lòng)',
+            5: '5 / 5 sao (Xuất sắc)'
+        };
+
+        function setupLandingStarPicker() {
+            const container = document.getElementById('landingStarPickerContainer');
+            if (!container) return;
+            const input = document.getElementById('landingFeedbackRating');
+            const label = document.getElementById('landingStarRatingLabel');
+            const stars = container.querySelectorAll('.landing-star-icon');
+
+            function updateDisplay(val) {
+                stars.forEach(star => {
+                    const r = parseInt(star.getAttribute('data-rating'), 10);
+                    if (r <= val) {
+                        star.className = 'bi bi-star-fill landing-star-icon';
+                    } else {
+                        star.className = 'bi bi-star landing-star-icon';
+                    }
+                });
+                if (label) label.textContent = landingStarLabels[val] || (val + ' / 5 sao');
+            }
+
+            stars.forEach(star => {
+                star.addEventListener('mouseover', function() {
+                    const r = parseInt(this.getAttribute('data-rating'), 10);
+                    updateDisplay(r);
+                });
+                star.addEventListener('click', function() {
+                    const r = parseInt(this.getAttribute('data-rating'), 10);
+                    input.value = r;
+                    input.setAttribute('data-selected-rating', r);
+                    updateDisplay(r);
+                });
+            });
+
+            container.addEventListener('mouseleave', function() {
+                const currentVal = parseInt(input.getAttribute('data-selected-rating') || input.value || '5', 10);
+                updateDisplay(currentVal);
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
+            setupLandingStarPicker();
             const menuContainer = document.getElementById('dynamicMenuContainer');
 
             if (!menuContainer || menuContainer.children.length === 0) {
@@ -1737,6 +1801,8 @@
             e.preventDefault();
             const dishId = document.getElementById('landingFeedbackDishId').value;
             const content = document.getElementById('landingFeedbackContent').value;
+            const ratingInput = document.getElementById('landingFeedbackRating');
+            const rating = ratingInput ? ratingInput.value : '5';
             const btn = document.getElementById('submitFeedbackBtn');
             const alertBox = document.getElementById('landingFeedbackAlert');
 
@@ -1746,6 +1812,7 @@
             const formData = new FormData();
             if (dishId) formData.append('dishId', dishId);
             formData.append('content', content);
+            formData.append('rating', rating);
 
             fetch('/api/feedback/landing-submit', {
                 method: 'POST',
@@ -1765,9 +1832,25 @@
 
                     document.getElementById('landingFeedbackContent').value = '';
                     document.getElementById('landingFeedbackDishId').value = '';
+                    if (ratingInput) {
+                        ratingInput.value = '5';
+                        ratingInput.setAttribute('data-selected-rating', '5');
+                    }
+                    const container = document.getElementById('landingStarPickerContainer');
+                    if (container) {
+                        container.querySelectorAll('.landing-star-icon').forEach(s => s.className = 'bi bi-star-fill landing-star-icon');
+                    }
+                    const starLabel = document.getElementById('landingStarRatingLabel');
+                    if (starLabel) starLabel.textContent = '5 / 5 sao (Xuất sắc)';
 
                     const scrollList = document.getElementById('feedbackScrollList');
                     const initialLetter = data.authorName ? data.authorName.charAt(0).toUpperCase() : 'K';
+                    const ratingVal = data.rating || parseInt(rating, 10) || 5;
+                    let starsHtml = '';
+                    for (let i = 1; i <= 5; i++) {
+                        starsHtml += i <= ratingVal ? '<i class="bi bi-star-fill"></i>' : '<i class="bi bi-star"></i>';
+                    }
+
                     const newCard = document.createElement('div');
                     newCard.className = 'feedback-item-card';
                     newCard.style.animation = 'fadeIn 0.5s ease';
@@ -1781,7 +1864,7 @@
                                 </div>
                             </div>
                             <div style="color:#FFD700; font-size:0.88rem;">
-                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                ${starsHtml}
                             </div>
                         </div>
                         ${data.dishName && data.dishName !== 'Phản hồi chung' ? `

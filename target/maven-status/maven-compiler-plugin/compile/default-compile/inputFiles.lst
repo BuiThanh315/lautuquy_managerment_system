@@ -26,6 +26,7 @@ D:\Module4_CaseStudy\lautuquy_managerment_system\src\main\java\com\lautuquy\mana
 D:\Module4_CaseStudy\lautuquy_managerment_system\src\main\java\com\lautuquy\management\dto\request\RegisterRequest.java
 D:\Module4_CaseStudy\lautuquy_managerment_system\src\main\java\com\lautuquy\management\dto\request\TableRequest.java
 D:\Module4_CaseStudy\lautuquy_managerment_system\src\main\java\com\lautuquy\management\dto\request\TableTypeRequest.java
+D:\Module4_CaseStudy\lautuquy_managerment_system\src\main\java\com\lautuquy\management\dto\response\BookingDetailDto.java
 D:\Module4_CaseStudy\lautuquy_managerment_system\src\main\java\com\lautuquy\management\dto\response\TableOptionDto.java
 D:\Module4_CaseStudy\lautuquy_managerment_system\src\main\java\com\lautuquy\management\entity\Account.java
 D:\Module4_CaseStudy\lautuquy_managerment_system\src\main\java\com\lautuquy\management\entity\Booking.java

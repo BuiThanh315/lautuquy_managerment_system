@@ -173,6 +173,10 @@
             font-weight: 600;
             text-decoration: none;
             transition: color 0.2s ease;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
         }
 
         .btn-back-booking:hover {
@@ -227,9 +231,9 @@
 
         <div id="payment-alert"></div>
 
-        <a th:href="@{/customer/booking}" href="/customer/booking" class="btn-back-booking">
+        <button type="button" id="btnBackToBooking" class="btn-back-booking">
             <i class="bi bi-arrow-left"></i> Quay lại trang Đặt Bàn
-        </a>
+        </button>
     </div>
 
     <script>
@@ -306,6 +310,19 @@
                 paymentAlert.style.display = 'block';
                 paymentAlert.innerHTML = '<i class="bi bi-check-circle-fill"></i> Thanh toán thành công! Bạn có thể quay lại trang Đặt Bàn.';
             });
+
+            // Handle "Quay lại trang Đặt Bàn" Click -> Close Payment Window
+            const btnBackToBooking = document.getElementById('btnBackToBooking');
+            if (btnBackToBooking) {
+                btnBackToBooking.addEventListener('click', function () {
+                    window.close();
+                    setTimeout(function () {
+                        if (!window.closed) {
+                            window.location.href = '/customer/booking';
+                        }
+                    }, 300);
+                });
+            }
         });
     </script>
 </body>

@@ -1036,10 +1036,36 @@
                     </div>
 
                     <!-- Submit Action Button Bar -->
-                    <div style="text-align:center; margin-top:30px; padding-top:24px; border-top:1.5px dashed rgba(155,15,6,0.18);">
-                        <button type="button" id="btnSubmitBooking" class="btn-hero-primary" th:disabled="${isSeated}">
-                            <i class="bi bi-calendar-check-fill"></i> Xác Nhận Đặt Bàn Ngay
-                        </button>
+                    <div style="margin-top:30px; padding-top:24px; border-top:1.5px dashed rgba(155,15,6,0.18);">
+                        <div style="display:flex; align-items:center; justify-content:center; gap:24px; flex-wrap:wrap;">
+                            <!-- QR Code Block -->
+                            <div style="background:#FFF9F2; border:1.5px solid #EED9B9; border-radius:18px; padding:14px 18px; text-align:center; box-shadow:0 4px 16px rgba(0,0,0,0.06); display:flex; align-items:center; gap:14px;">
+                                <a id="qrPaymentLink" th:href="@{/customer/payment}" href="/customer/payment" target="_blank" title="Bấm hoặc quét mã QR để chuyển sang trang Thanh Toán">
+                                    <img id="bookingQrImg" src="" alt="Mã QR Thanh Toán" style="width:96px; height:96px; border-radius:10px; border:1px solid rgba(155,15,6,0.2); object-fit:contain; background:#ffffff; padding:4px;" />
+                                </a>
+                                <div style="text-align:left;">
+                                    <div style="font-weight:700; font-size:0.9rem; color:#5E0006; display:flex; align-items:center; gap:6px;">
+                                        <i class="bi bi-qr-code-scan" style="color:#D53E0F; font-size:1.1rem;"></i> Mã QR Thanh Toán
+                                    </div>
+                                    <div style="font-size:0.78rem; color:#9a7060; margin-top:3px; max-width:170px; line-height:1.3;">
+                                        Quét mã hoặc nhấp vào mã QR để mở trang Thanh Toán.
+                                    </div>
+                                    <a th:href="@{/customer/payment}" href="/customer/payment" target="_blank" style="display:inline-block; font-size:0.78rem; font-weight:700; color:#D53E0F; margin-top:4px; text-decoration:none;">
+                                        Mở trang Thanh Toán <i class="bi bi-box-arrow-up-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Button Submit Booking -->
+                            <div style="text-align:center;">
+                                <button type="button" id="btnSubmitBooking" class="btn-hero-primary" disabled th:disabled="${isSeated}">
+                                    <i class="bi bi-calendar-check-fill"></i> Xác Nhận Đặt Bàn Ngay
+                                </button>
+                                <div id="bookingSubmitHelpText" style="font-size:0.8rem; color:#9a7060; font-weight:600; margin-top:8px;">
+                                    <i class="bi bi-lock-fill"></i> Vui lòng điền đủ thông tin & xác nhận thanh toán để mở khóa.
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -1394,13 +1420,92 @@
             // Render trạng thái danh sách ban đầu
             renderPreorderTable();
 
+            // -------------------------------------------------------------
+            // LOGIC MÃ QR VÀ MỞ KHÓA NÚT THEO TRÌNH TỰ (FORM -> PAYMENT -> SUBMIT)
+            // -------------------------------------------------------------
+            const bookingFormInputs = ['customerName', 'customerPhone', 'bookingDate', 'bookingTime', 'tableTypeId'];
+            const qrImg = document.getElementById('bookingQrImg');
+            const qrPaymentLink = document.getElementById('qrPaymentLink');
+            const submitHelpText = document.getElementById('bookingSubmitHelpText');
+            const btnSubmitBooking = document.getElementById('btnSubmitBooking');
+
+            // Tạo mã QR trỏ chính xác tới trang thanh toán (/customer/payment)
+            const paymentUrl = window.location.origin + '/customer/payment';
+            if (qrImg) {
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(paymentUrl)}`;
+            }
+            if (qrPaymentLink) {
+                qrPaymentLink.href = paymentUrl;
+            }
+
+            function validateBookingInputs() {
+                let allFilled = true;
+                bookingFormInputs.forEach(id => {
+                    const input = document.getElementById(id);
+                    if (!input || !input.value || !input.value.trim()) {
+                        allFilled = false;
+                    }
+                });
+
+                if (allFilled) {
+                    localStorage.setItem('bookingFormCompleted', 'true');
+                } else {
+                    localStorage.setItem('bookingFormCompleted', 'false');
+                    localStorage.setItem('paymentConfirmed', 'false');
+                }
+                updateBookingSubmitButtonState();
+            }
+
+            function updateBookingSubmitButtonState() {
+                if (!btnSubmitBooking) return;
+                const isFormCompleted = localStorage.getItem('bookingFormCompleted') === 'true';
+                const isPaymentConfirmed = localStorage.getItem('paymentConfirmed') === 'true';
+
+                if (isPaymentConfirmed && isFormCompleted) {
+                    btnSubmitBooking.disabled = false;
+                    btnSubmitBooking.style.opacity = '1';
+                    btnSubmitBooking.style.cursor = 'pointer';
+                    if (submitHelpText) {
+                        submitHelpText.innerHTML = `<span style="color:#27ae60; font-weight:700;"><i class="bi bi-unlock-fill"></i> Đã hoàn tất thanh toán. Bấm để Xác Nhận Đặt Bàn Ngay!</span>`;
+                    }
+                } else {
+                    btnSubmitBooking.disabled = true;
+                    btnSubmitBooking.style.opacity = '0.5';
+                    btnSubmitBooking.style.cursor = 'not-allowed';
+                    if (!isFormCompleted) {
+                        if (submitHelpText) submitHelpText.innerHTML = `<i class="bi bi-lock-fill"></i> Vui lòng điền đủ thông tin đặt bàn trước`;
+                    } else {
+                        if (submitHelpText) submitHelpText.innerHTML = `<i class="bi bi-lock-fill"></i> Vui lòng quét mã QR hoặc bấm Xác Nhận Thanh Toán để mở khóa nút này`;
+                    }
+                }
+            }
+
+            bookingFormInputs.forEach(id => {
+                const elem = document.getElementById(id);
+                if (elem) {
+                    elem.addEventListener('input', validateBookingInputs);
+                    elem.addEventListener('change', validateBookingInputs);
+                }
+            });
+
+            window.addEventListener('storage', function (e) {
+                if (e.key === 'paymentConfirmed' || e.key === 'bookingFormCompleted') {
+                    updateBookingSubmitButtonState();
+                }
+            });
+
+            validateBookingInputs();
+            updateBookingSubmitButtonState();
+            setInterval(updateBookingSubmitButtonState, 1000);
+
             // Xóa bộ nhớ đặt trước khi người dùng submit đơn đặt bàn thành công
             const bookingForm = document.getElementById('bookingForm');
-            const btnSubmitBooking = document.getElementById('btnSubmitBooking');
 
             if (bookingForm && btnSubmitBooking) {
                 btnSubmitBooking.addEventListener('click', async function (e) {
                     e.preventDefault();
+
+                    if (btnSubmitBooking.disabled) return;
 
                     // Kiểm tra tính hợp lệ của các trường dữ liệu HTML5
                     if (!bookingForm.checkValidity()) {
@@ -1423,6 +1528,10 @@
                         const result = await response.json();
 
                         if (response.ok && result.success) {
+                            // Xóa trạng thái local storage
+                            localStorage.removeItem('bookingFormCompleted');
+                            localStorage.removeItem('paymentConfirmed');
+
                             // Xóa bộ nhớ preorder local storage & render lại bàn
                             clearPreordersFromStorage();
                             selectedPreordersMap.clear();

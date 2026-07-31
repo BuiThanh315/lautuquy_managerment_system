@@ -4,175 +4,310 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title th:text="${pageTitle}">Thanh Toán Đơn Bàn — Lẩu Tứ Quý</title>
+    <title th:text="${pageTitle ?: 'Xác Nhận Thanh Toán — Lẩu Tứ Quý'}">Xác Nhận Thanh Toán — Lẩu Tứ Quý</title>
+    
+    <!-- Design System CSS -->
     <link rel="stylesheet" th:href="@{/css/style.css(v=5)}" />
+    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body.payment-page-body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #2D0003 0%, #5E0006 50%, #1A0002 100%);
+            color: #ffffff;
+            position: relative;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        /* Decorative Background Elements */
+        body.payment-page-body::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            left: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(213, 62, 15, 0.25) 0%, rgba(0, 0, 0, 0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        body.payment-page-body::after {
+            content: '';
+            position: absolute;
+            bottom: -20%;
+            right: -20%;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(238, 217, 185, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* Center Payment Card Container */
+        .payment-card-container {
+            width: 100%;
+            max-width: 520px;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(16px);
+            border-radius: 28px;
+            border: 2px solid #EED9B9;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(213, 62, 15, 0.2);
+            padding: 42px 32px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            animation: cardAppear 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes cardAppear {
+            0% { transform: translateY(30px) scale(0.95); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .payment-brand-logo {
+            height: 64px;
+            width: auto;
+            object-fit: contain;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 4px 12px rgba(94, 0, 6, 0.25));
+        }
+
+        .payment-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #5E0006;
+            margin-bottom: 6px;
+        }
+
+        .payment-subtitle {
+            font-size: 0.92rem;
+            color: #666666;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        /* Status Badge Box */
+        .status-info-box {
+            background: #FBF5EA;
+            border: 1.5px dashed rgba(155, 15, 6, 0.25);
+            border-radius: 18px;
+            padding: 16px 20px;
+            margin-bottom: 30px;
+            font-size: 0.88rem;
+            color: #5E0006;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .status-info-box i {
+            font-size: 1.3rem;
+            color: #D53E0F;
+            flex-shrink: 0;
+        }
+
+        /* Centered Confirm Payment Button */
+        .btn-confirm-payment {
+            width: 100%;
+            padding: 18px 24px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            border-radius: 9999px;
+            border: none;
+            color: #ffffff;
+            background: linear-gradient(135deg, #10B981 0%, #047857 100%);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-confirm-payment:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(16, 185, 129, 0.55);
+            background: linear-gradient(135deg, #34D399 0%, #059669 100%);
+        }
+
+        .btn-confirm-payment:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        /* Grayed out / Disabled state */
+        .btn-confirm-payment:disabled,
+        .btn-confirm-payment.disabled-style {
+            background: #CBD5E1 !important;
+            color: #64748B !important;
+            box-shadow: none !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+            opacity: 0.75;
+        }
+
+        .btn-back-booking {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 24px;
+            color: #888;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .btn-back-booking:hover {
+            color: #5E0006;
+        }
+
+        /* Alert Toast */
+        #payment-alert {
+            display: none;
+            margin-top: 20px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .alert-success-custom {
+            background: #D1FAE5;
+            color: #065F46;
+            border: 1px solid #A7F3D0;
+        }
+
+        .alert-warning-custom {
+            background: #FEF3C7;
+            color: #92400E;
+            border: 1px solid #FDE68A;
+        }
+    </style>
 </head>
 
-<body class="customer-page" th:style="'background: url(' + @{/images/auth-bg.jpg} + ') no-repeat center center / cover fixed;'">
+<body class="payment-page-body">
 
-    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <div class="payment-card-container">
+        <!-- Brand Header -->
+        <img th:src="@{/images/logo.png}" alt="Lẩu Tứ Quý Logo" class="payment-brand-logo" />
+        <h1 class="payment-title">Cổng Thanh Toán Đặt Bàn</h1>
+        <p class="payment-subtitle">Xác nhận thanh toán tiền cọc giữ bàn cho nhà hàng Lẩu Tứ Quý</p>
 
-    <div class="app-shell">
-        <nav class="sidebar" id="sidebar">
-            <div class="sidebar-brand">
-                <img th:src="@{/images/logo.png}" alt="Lẩu Tứ Quý Logo" class="brand-logo-img"/>
-                <div class="brand-name">Lẩu Tứ Quý</div>
-                <div class="brand-subtitle">Restaurant Management</div>
-            </div>
-            <div class="sidebar-nav">
-                <div class="nav-section-title">Khách hàng</div>
-                <a th:href="@{/customer/landing}" class="nav-item">
-                    <i class="bi bi-house-door-fill nav-icon"></i><span>Trang chủ</span>
-                </a>
-                <a th:href="@{/customer/order}" class="nav-item">
-                    <i class="bi bi-cart-fill nav-icon"></i><span>Gọi món</span>
-                </a>
-                <a th:href="${isSeated ? 'javascript:void(0)' : '/customer/booking'}" class="nav-item"
-                    th:classappend="${isSeated ? 'disabled' : ''}"
-                    th:style="${isSeated ? 'pointer-events:none; opacity:0.45; cursor:not-allowed;' : ''}">
-                    <i class="bi bi-calendar-plus-fill nav-icon"></i><span>Đặt bàn</span>
-                </a>
-                <a th:href="@{/customer/booking/history}" class="nav-item">
-                    <i class="bi bi-clock-history nav-icon"></i><span>Lịch sử đặt bàn</span>
-                </a>
-                <a th:href="@{/customer/feedback}" class="nav-item">
-                    <i class="bi bi-star-fill nav-icon"></i><span>Phản hồi</span>
-                </a>
-
-                <!-- Button Thanh toán -->
-                <div style="padding:16px 12px 0 12px;">
-                    <a th:href="@{/customer/payment}" class="btn btn-success btn-block" style="background:#10b981; border:none; padding:10px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
-                        <i class="bi bi-cash-coin"></i> Thanh toán
-                    </a>
-                </div>
-            </div>
-            <div class="sidebar-footer">
-                <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-                    <div class="user-avatar">
-                        <span sec:authentication="name"
-                            th:text="${#strings.substring(#authentication.name,0,1).toUpperCase()}">C</span>
-                    </div>
-                    <div>
-                        <div style="font-size:0.85rem; font-weight:600; color:var(--clr-text-primary);"
-                            th:text="${#authentication.name}">Customer</div>
-                        <div style="font-size:0.7rem; color:var(--clr-coral);">CUSTOMER</div>
-                    </div>
-                </div>
-                <form th:action="@{/auth/logout}" method="post">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button type="submit" class="btn btn-secondary btn-sm btn-block" style="justify-content:center;">
-                        <i class="bi bi-box-arrow-left"></i> Đăng xuất
-                    </button>
-                </form>
-            </div>
-        </nav>
-
-        <div class="main-content">
-            <header class="topbar">
-                <div style="display:flex; align-items:center; gap:16px;">
-                    <button id="sidebar-toggle" class="btn btn-secondary btn-sm" style="display:none; padding:8px 10px;">
-                        <i class="bi bi-list" style="font-size:1.2rem;"></i>
-                    </button>
-                    <div class="topbar-title" th:text="'Thanh Toán Hóa Đơn — ' + (${seatedBooking.assignedTable != null} ? 'Bàn ' + ${seatedBooking.assignedTable.tableNumber} : 'Bàn ăn')"></div>
-                </div>
-            </header>
-
-            <main class="page-content">
-
-                <div th:if="${successMessage}" class="alert alert-success" data-auto-dismiss="true">
-                    <i class="bi bi-check-circle-fill"></i> <span th:text="${successMessage}"></span>
-                </div>
-                <div th:if="${errorMessage}" class="alert alert-danger" data-auto-dismiss="true">
-                    <i class="bi bi-exclamation-circle-fill"></i> <span th:text="${errorMessage}"></span>
-                </div>
-
-                <div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px;">
-                    <!-- Danh sách món đã gọi -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h2 class="card-title">
-                                <i class="bi bi-receipt-cutoff" style="color:var(--clr-gold);"></i>
-                                Chi tiết đơn phục vụ tại bàn
-                            </h2>
-                        </div>
-                        <div class="table-wrapper">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Món ăn</th>
-                                        <th>Đơn giá</th>
-                                        <th style="text-align:center;">Số lượng</th>
-                                        <th style="text-align:right;">Thành tiền</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr th:each="item : ${orderItems}">
-                                        <td th:text="${item.dish.name}" style="font-weight:600;"></td>
-                                        <td th:text="${#numbers.formatDecimal(item.actualPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
-                                        <td style="text-align:center;" th:text="${item.quantity}"></td>
-                                        <td style="text-align:right; font-weight:700;" th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
-                                    </tr>
-                                    <tr th:if="${orderItems.isEmpty()}">
-                                        <td colspan="4" style="text-align:center; padding:30px; color:var(--clr-text-muted);">Chưa có món ăn nào trong đơn.</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Card chọn phương thức thanh toán -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h2 class="card-title"><i class="bi bi-wallet2" style="color:#10b981;"></i> Thanh toán</h2>
-                        </div>
-                        <div style="padding:20px;">
-                            <div style="margin-bottom:20px; text-align:center; background:var(--clr-surface-2); padding:16px; border-radius:var(--radius-md);">
-                                <div style="font-size:0.9rem; color:var(--clr-text-muted);">Tổng số tiền cần thanh toán:</div>
-                                <div style="font-size:1.8rem; font-weight:800; color:var(--clr-gold); margin-top:4px;"
-                                     th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></div>
-                            </div>
-
-                            <form th:action="@{/customer/payment/submit}" method="post">
-                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-
-                                <div class="form-group mb-md">
-                                    <label class="form-label" style="font-weight:600;">Chọn phương thức thanh toán:</label>
-                                    <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
-                                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; padding:12px; border:1px solid var(--clr-border); border-radius:var(--radius-md);">
-                                            <input type="radio" name="paymentMethod" value="CASH" checked />
-                                            <i class="bi bi-cash-stack" style="font-size:1.4rem; color:#10b981;"></i>
-                                            <div>
-                                                <div style="font-weight:600;">Tiền mặt</div>
-                                                <div style="font-size:0.75rem; color:var(--clr-text-muted);">Thanh toán trực tiếp cho nhân viên tại bàn</div>
-                                            </div>
-                                        </label>
-
-                                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; padding:12px; border:1px solid var(--clr-border); border-radius:var(--radius-md);">
-                                            <input type="radio" name="paymentMethod" value="BANK_TRANSFER" />
-                                            <i class="bi bi-qr-code-scan" style="font-size:1.4rem; color:var(--clr-gold);"></i>
-                                            <div>
-                                                <div style="font-weight:600;">Chuyển khoản Banking</div>
-                                                <div style="font-size:0.75rem; color:var(--clr-text-muted);">Quét mã QR chuyển khoản cho nhà hàng</div>
-                                            </div>
-                                        </label>
-                                    </div>
-                                </div>
-
-
-
-                                <button type="submit" class="btn btn-success btn-block" style="background:#10b981; border:none; padding:12px; font-weight:700; font-size:1rem;">
-                                    <i class="bi bi-check-circle-fill"></i> Xác nhận thanh toán
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </main>
+        <!-- Status Box -->
+        <div class="status-info-box" id="statusInfoBox">
+            <i class="bi bi-info-circle-fill" id="statusIcon"></i>
+            <span id="statusMessage">Vui lòng điền đầy đủ thông tin đặt bàn trước khi xác nhận thanh toán.</span>
         </div>
+
+        <!-- Single Centered Payment Button -->
+        <form id="paymentForm" th:action="@{/customer/payment/submit}" method="post">
+            <button type="button" id="btnSubmitPayment" class="btn-confirm-payment disabled-style" disabled>
+                <i class="bi bi-cash-coin"></i> Xác Nhận Thanh Toán
+            </button>
+        </form>
+
+        <div id="payment-alert"></div>
+
+        <a th:href="@{/customer/booking}" href="/customer/booking" class="btn-back-booking">
+            <i class="bi bi-arrow-left"></i> Quay lại trang Đặt Bàn
+        </a>
     </div>
 
-    <script th:src="@{/js/main.js(v=7)}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const btnSubmitPayment = document.getElementById('btnSubmitPayment');
+            const statusInfoBox = document.getElementById('statusInfoBox');
+            const statusIcon = document.getElementById('statusIcon');
+            const statusMessage = document.getElementById('statusMessage');
+            const paymentAlert = document.getElementById('payment-alert');
+            const paymentForm = document.getElementById('paymentForm');
+
+            function checkFormCompletedStatus() {
+                const isFormCompleted = localStorage.getItem('bookingFormCompleted') === 'true';
+                const isAlreadyConfirmed = localStorage.getItem('paymentConfirmed') === 'true';
+
+                if (isAlreadyConfirmed) {
+                    btnSubmitPayment.disabled = false;
+                    btnSubmitPayment.classList.remove('disabled-style');
+                    btnSubmitPayment.innerHTML = `<i class="bi bi-check-circle-fill"></i> Đã Xác Nhận Thanh Toán`;
+                    btnSubmitPayment.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+                    
+                    statusIcon.className = 'bi bi-check-circle-fill';
+                    statusIcon.style.color = '#10B981';
+                    statusMessage.textContent = 'Bạn đã hoàn tất xác nhận thanh toán. Vui lòng quay lại trang Đặt Bàn để Xác Nhận Đặt Bàn Ngay!';
+                    return;
+                }
+
+                if (isFormCompleted) {
+                    btnSubmitPayment.disabled = false;
+                    btnSubmitPayment.classList.remove('disabled-style');
+                    btnSubmitPayment.innerHTML = `<i class="bi bi-cash-coin"></i> Xác Nhận Thanh Toán`;
+                    btnSubmitPayment.style.background = '';
+                    
+                    statusIcon.className = 'bi bi-check-circle-fill';
+                    statusIcon.style.color = '#10B981';
+                    statusMessage.textContent = 'Thông tin đặt bàn đã đầy đủ. Bạn có thể bấm Xác Nhận Thanh Toán ngay bây giờ!';
+                } else {
+                    btnSubmitPayment.disabled = true;
+                    btnSubmitPayment.classList.add('disabled-style');
+                    btnSubmitPayment.innerHTML = `<i class="bi bi-lock-fill"></i> Chưa Thể Thanh Toán`;
+                    
+                    statusIcon.className = 'bi bi-exclamation-triangle-fill';
+                    statusIcon.style.color = '#D53E0F';
+                    statusMessage.textContent = 'Vui lòng điền đầy đủ các thông tin bắt buộc tại trang Đặt Bàn trước!';
+                }
+            }
+
+            // Execute check immediately on page load
+            checkFormCompletedStatus();
+
+            // Listen for cross-tab updates from booking form
+            window.addEventListener('storage', function (e) {
+                if (e.key === 'bookingFormCompleted' || e.key === 'paymentConfirmed') {
+                    checkFormCompletedStatus();
+                }
+            });
+
+            // Handle Payment Button Click
+            btnSubmitPayment.addEventListener('click', function () {
+                if (btnSubmitPayment.disabled) return;
+
+                // Save confirmed payment state to localStorage
+                localStorage.setItem('paymentConfirmed', 'true');
+
+                // Update UI state
+                btnSubmitPayment.innerHTML = `<i class="bi bi-check-circle-fill"></i> Đã Xác Nhận Thanh Toán`;
+                btnSubmitPayment.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+
+                statusIcon.className = 'bi bi-check-circle-fill';
+                statusIcon.style.color = '#10B981';
+                statusMessage.textContent = 'Xác nhận thanh toán thành công! Nút "Xác Nhận Đặt Bàn Ngay" tại trang Đặt Bàn đã được mở.';
+
+                paymentAlert.className = 'alert-success-custom';
+                paymentAlert.style.display = 'block';
+                paymentAlert.innerHTML = '<i class="bi bi-check-circle-fill"></i> Thanh toán thành công! Bạn có thể quay lại trang Đặt Bàn.';
+            });
+        });
+    </script>
 </body>
 
 </html>

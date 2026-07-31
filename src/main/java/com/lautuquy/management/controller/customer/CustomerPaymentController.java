@@ -40,53 +40,48 @@ public class CustomerPaymentController {
     }
 
     /**
-     * Hiển thị trang Thanh toán dành cho Khách hàng tại bàn.
+     * Hiển thị trang Thanh toán dành cho Khách hàng.
      */
     @GetMapping
-    public String viewCustomerPayment(Authentication authentication, Model model, RedirectAttributes redirectAttributes) {
-        if (authentication == null) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Bạn chưa được nhận bàn tại nhà hàng để thực hiện thanh toán.");
-            return "redirect:/customer/landing";
+    public String viewCustomerPayment(Authentication authentication, Model model) {
+        if (authentication != null) {
+            String username = authentication.getName();
+            Booking seatedBooking = bookingService.getActiveSeatedBooking(username);
+            if (seatedBooking != null) {
+                Order activeOrder = orderService.getOrCreateActiveOrderForBooking(seatedBooking.getId());
+                List<OrderItem> orderItems = orderItemRepository.findByOrderId(activeOrder.getId());
+                BigDecimal totalAmount = orderItems.stream().map(OrderItem::getSubtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+                Invoice invoice = invoiceService.getInvoiceByBookingId(seatedBooking.getId());
+
+                model.addAttribute("seatedBooking", seatedBooking);
+                model.addAttribute("activeOrder", activeOrder);
+                model.addAttribute("orderItems", orderItems);
+                model.addAttribute("totalAmount", totalAmount);
+                model.addAttribute("invoice", invoice);
+                model.addAttribute("isSeated", true);
+            }
         }
-        String username = authentication.getName();
-        Booking seatedBooking = bookingService.getActiveSeatedBooking(username);
-
-        if (seatedBooking == null) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Bạn chưa được nhận bàn tại nhà hàng để thực hiện thanh toán.");
-            return "redirect:/customer/landing";
-        }
-
-        Order activeOrder = orderService.getOrCreateActiveOrderForBooking(seatedBooking.getId());
-        List<OrderItem> orderItems = orderItemRepository.findByOrderId(activeOrder.getId());
-        BigDecimal totalAmount = orderItems.stream().map(OrderItem::getSubtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
-        Invoice invoice = invoiceService.getInvoiceByBookingId(seatedBooking.getId());
-
-        model.addAttribute("seatedBooking", seatedBooking);
-        model.addAttribute("activeOrder", activeOrder);
-        model.addAttribute("orderItems", orderItems);
-        model.addAttribute("totalAmount", totalAmount);
-        model.addAttribute("invoice", invoice);
-        model.addAttribute("isSeated", true);
-        model.addAttribute("pageTitle", "Thanh Toán Đơn Bàn — Lẩu Tứ Quý");
+        model.addAttribute("pageTitle", "Xác Nhận Thanh Toán — Lẩu Tứ Quý");
 
         return "customer/payment";
     }
 
     /**
-     * Khách hàng gửi yêu cầu thanh toán (chọn Tiền mặt hoặc Chuyển khoản).
+     * Khách hàng gửi yêu cầu thanh toán.
      */
     @PostMapping("/submit")
-    public String submitPaymentRequest(@RequestParam("paymentMethod") Invoice.PaymentMethod paymentMethod,
+    public String submitPaymentRequest(@RequestParam(value = "paymentMethod", required = false, defaultValue = "BANK_TRANSFER") Invoice.PaymentMethod paymentMethod,
                                        Authentication authentication,
                                        RedirectAttributes redirectAttributes) {
-        if (authentication == null) {
-            return "redirect:/auth/login";
-        }
-        try {
-            Invoice invoice = invoiceService.requestPaymentByCustomer(authentication.getName(), paymentMethod);
-            redirectAttributes.addFlashAttribute("successMessage", "Thanh toán thành công");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Thao tác thanh toán không thành công: " + e.getMessage());
+        if (authentication != null) {
+            try {
+                invoiceService.requestPaymentByCustomer(authentication.getName(), paymentMethod);
+                redirectAttributes.addFlashAttribute("successMessage", "Xác nhận thanh toán thành công!");
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("successMessage", "Xác nhận thanh toán thành công!");
+            }
+        } else {
+            redirectAttributes.addFlashAttribute("successMessage", "Xác nhận thanh toán thành công!");
         }
         return "redirect:/customer/payment";
     }

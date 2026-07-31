@@ -70,6 +70,11 @@ public class BookingServiceImpl implements BookingService {
         booking.setAccount(account);
         booking.setCustomerName(request.getCustomerName());
         booking.setCustomerPhone(request.getCustomerPhone());
+        String email = request.getCustomerEmail();
+        if ((email == null || email.isBlank()) && account != null) {
+            email = account.getEmail();
+        }
+        booking.setCustomerEmail(email);
         booking.setBookingDate(request.getBookingDate());
         booking.setBookingTime(request.getBookingTime());
         booking.setTableType(tableType);
@@ -119,7 +124,33 @@ public class BookingServiceImpl implements BookingService {
     public List<Booking> getBookingsByAccount(String username) {
         Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Tài khoản", username));
-        return bookingRepository.findByAccountIdOrderByCreatedAtDesc(account.getId());
+        List<Booking> accountBookings = bookingRepository.findByAccountIdOrderByCreatedAtDesc(account.getId());
+        if (account.getPhone() != null && !account.getPhone().isBlank()) {
+            List<Booking> phoneBookings = bookingRepository.searchByPhoneOrEmail(account.getPhone());
+            for (Booking b : phoneBookings) {
+                if (accountBookings.stream().noneMatch(existing -> existing.getId().equals(b.getId()))) {
+                    accountBookings.add(b);
+                }
+            }
+        }
+        if (account.getEmail() != null && !account.getEmail().isBlank()) {
+            List<Booking> emailBookings = bookingRepository.searchByPhoneOrEmail(account.getEmail());
+            for (Booking b : emailBookings) {
+                if (accountBookings.stream().noneMatch(existing -> existing.getId().equals(b.getId()))) {
+                    accountBookings.add(b);
+                }
+            }
+        }
+        for (Booking b : accountBookings) {
+            if (b.getCustomerEmail() == null || b.getCustomerEmail().isBlank()) {
+                if (b.getAccount() != null && b.getAccount().getEmail() != null) {
+                    b.setCustomerEmail(b.getAccount().getEmail());
+                } else if (account.getEmail() != null) {
+                    b.setCustomerEmail(account.getEmail());
+                }
+            }
+        }
+        return accountBookings;
     }
 
     @Override
@@ -127,7 +158,22 @@ public class BookingServiceImpl implements BookingService {
         if (keyword == null || keyword.trim().isEmpty()) {
             return java.util.Collections.emptyList();
         }
-        return bookingRepository.searchByPhoneOrEmail(keyword.trim());
+        String cleanKeyword = keyword.trim();
+        List<Booking> results = bookingRepository.searchByPhoneOrEmail(cleanKeyword);
+
+        for (Booking b : results) {
+            if (b.getCustomerEmail() == null || b.getCustomerEmail().isBlank()) {
+                if (b.getAccount() != null && b.getAccount().getEmail() != null && !b.getAccount().getEmail().isBlank()) {
+                    b.setCustomerEmail(b.getAccount().getEmail());
+                } else if (b.getCustomerPhone() != null && !b.getCustomerPhone().isBlank()) {
+                    var accOpt = accountRepository.findFirstByPhone(b.getCustomerPhone());
+                    if (accOpt.isPresent() && accOpt.get().getEmail() != null && !accOpt.get().getEmail().isBlank()) {
+                        b.setCustomerEmail(accOpt.get().getEmail());
+                    }
+                }
+            }
+        }
+        return results;
     }
 
     @Override
@@ -268,7 +314,18 @@ public class BookingServiceImpl implements BookingService {
         dto.setId(b.getId());
         dto.setCustomerName(b.getCustomerName());
         dto.setCustomerPhone(b.getCustomerPhone());
-        dto.setCustomerEmail(b.getAccount() != null && b.getAccount().getEmail() != null ? b.getAccount().getEmail() : "—");
+        String customerEmail = "—";
+        if (b.getCustomerEmail() != null && !b.getCustomerEmail().isBlank()) {
+            customerEmail = b.getCustomerEmail();
+        } else if (b.getAccount() != null && b.getAccount().getEmail() != null && !b.getAccount().getEmail().isBlank()) {
+            customerEmail = b.getAccount().getEmail();
+        } else if (b.getCustomerPhone() != null && !b.getCustomerPhone().isBlank()) {
+            java.util.Optional<Account> accOpt = accountRepository.findFirstByPhone(b.getCustomerPhone());
+            if (accOpt.isPresent() && accOpt.get().getEmail() != null && !accOpt.get().getEmail().isBlank()) {
+                customerEmail = accOpt.get().getEmail();
+            }
+        }
+        dto.setCustomerEmail(customerEmail);
         dto.setBookingDate(b.getBookingDate() != null ? b.getBookingDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
         dto.setBookingTime(b.getBookingTime() != null ? b.getBookingTime().toString() : "");
 

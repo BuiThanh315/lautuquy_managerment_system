@@ -373,6 +373,7 @@
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.4px;
+            white-space: nowrap;
         }
 
         .status-badge-pending {
@@ -415,18 +416,19 @@
             background: rgba(15, 3, 4, 0.75);
             backdrop-filter: blur(8px);
             z-index: 10000;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             padding: 20px;
             opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            transition: opacity 0.3s ease;
         }
 
         .booking-lightbox-overlay.active {
-            opacity: 1;
-            visibility: visible;
+            display: flex !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
         }
 
         .booking-lightbox-card {
@@ -811,7 +813,7 @@
                                 <th>Số Điện Thoại</th>
                                 <th>Email</th>
                                 <th>Ngày &amp; Giờ Đến</th>
-                                <th>Trạng Thái</th>
+                                <th style="white-space:nowrap;">Trạng Thái</th>
                                 <th style="text-align:center; width:170px;">Thao Tác</th>
                             </tr>
                         </thead>
@@ -824,9 +826,9 @@
                                     <strong th:text="${b.customerName}" style="color:#2d0a06;">Nguyễn Văn A</strong>
                                 </td>
                                 <td th:text="${b.customerPhone}">0912345678</td>
-                                <td th:text="${b.account != null and b.account.email != null ? b.account.email : '—'}">khach@gmail.com</td>
+                                <td th:text="${b.customerEmail != null and !b.customerEmail.isBlank() ? b.customerEmail : (b.account != null and b.account.email != null and !b.account.email.isBlank() ? b.account.email : '—')}">khach@gmail.com</td>
                                 <td th:text="${#temporals.format(b.bookingDate, 'dd/MM/yyyy')} + ' ' + ${b.bookingTime}" style="font-weight:600;">28/07/2026 18:30</td>
-                                <td>
+                                <td style="white-space:nowrap;">
                                     <span th:switch="${b.status.name()}">
                                         <span th:case="'PENDING'" class="status-badge-custom status-badge-pending">
                                             <i class="bi bi-hourglass-split"></i> Chờ duyệt
@@ -847,7 +849,7 @@
                                 </td>
                                 <td style="text-align:center; white-space:nowrap;">
                                     <!-- Button Chi tiết -->
-                                    <button type="button" class="btn-table-action-detail" th:onclick="'openBookingDetail(' + ${b.id} + ')'" title="Xem chi tiết đơn đặt bàn">
+                                    <button type="button" class="btn-table-action-detail" th:data-id="${b.id}" th:onclick="|openBookingDetail(${b.id})|" title="Xem chi tiết đơn đặt bàn">
                                         <i class="bi bi-info-circle-fill"></i> Chi tiết
                                     </button>
 
@@ -1139,6 +1141,16 @@
                 closeBookingDetailModal();
             }
         }
+
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.btn-table-action-detail');
+            if (btn) {
+                const bookingId = btn.getAttribute('data-id');
+                if (bookingId) {
+                    openBookingDetail(bookingId);
+                }
+            }
+        });
 
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {

@@ -26,6 +26,9 @@ public class Booking {
     @Column(name = "customer_phone", nullable = false, length = 15)
     private String customerPhone;
 
+    @Column(name = "customer_email", length = 100)
+    private String customerEmail;
+
     @Column(name = "booking_date", nullable = false)
     private LocalDate bookingDate;
 
@@ -95,6 +98,9 @@ public class Booking {
 
     public String getCustomerPhone() { return customerPhone; }
     public void setCustomerPhone(String customerPhone) { this.customerPhone = customerPhone; }
+
+    public String getCustomerEmail() { return customerEmail; }
+    public void setCustomerEmail(String customerEmail) { this.customerEmail = customerEmail; }
 
     public LocalDate getBookingDate() { return bookingDate; }
     public void setBookingDate(LocalDate bookingDate) { this.bookingDate = bookingDate; }

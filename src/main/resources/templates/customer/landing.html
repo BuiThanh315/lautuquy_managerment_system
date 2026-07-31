@@ -118,6 +118,7 @@
             margin: 0 !important;
             padding: 0 !important;
             white-space: nowrap !important;
+            position: relative !important;
         }
 
         .landing-nav-links li {
@@ -133,32 +134,36 @@
             display: inline-flex !important;
             align-items: center !important;
             gap: 6px !important;
-            padding: 6px 0 !important;
+            padding: 8px 0 !important;
             white-space: nowrap !important;
             position: relative !important;
-            transition: color 0.2s ease !important;
-        }
-
-        .landing-nav-links li a::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #D53E0F, #EED9B9);
-            transition: width 0.25s ease;
-            border-radius: 2px;
+            transition: color 0.25s ease, text-shadow 0.25s ease !important;
         }
 
         .landing-nav-links li a:hover,
         .landing-nav-links li a.active {
             color: #EED9B9 !important;
+            text-shadow: 0 0 10px rgba(238, 217, 185, 0.3);
         }
 
-        .landing-nav-links li a:hover::after,
-        .landing-nav-links li a.active::after {
-            width: 100% !important;
+        .landing-nav-links li a::after {
+            display: none !important;
+        }
+
+        /* Dynamic Sliding Active Line Indicator */
+        .nav-active-indicator {
+            position: absolute !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            height: 3px !important;
+            background: linear-gradient(90deg, #D53E0F 0%, #f39c12 50%, #EED9B9 100%) !important;
+            border-radius: 9999px !important;
+            box-shadow: 0 0 10px rgba(213, 62, 15, 0.8), 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+            transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), width 0.35s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease !important;
+            pointer-events: none !important;
+            z-index: 10 !important;
+            opacity: 0;
+            will-change: transform, width;
         }
 
         /* Header Actions & Buttons */
@@ -1145,10 +1150,11 @@
 
             <!-- Nav Links (Nằm Trên Một Hàng Không Xuống Dòng) -->
             <ul class="landing-nav-links">
-                <li><a href="#hero"><i class="bi bi-house-door-fill"></i> Trang Chủ</a></li>
+                <li><a href="#hero" class="active"><i class="bi bi-house-door-fill"></i> Trang Chủ</a></li>
                 <li><a href="#about"><i class="bi bi-award-fill"></i> Giới Thiệu</a></li>
                 <li><a href="#menu"><i class="bi bi-journal-richtext"></i> Thực Đơn</a></li>
                 <li><a href="#feedback"><i class="bi bi-chat-square-heart-fill"></i> Đánh Giá</a></li>
+                <div class="nav-active-indicator"></div>
             </ul>
 
             <!-- Header Action Buttons -->
@@ -1694,6 +1700,60 @@
         }
 
         function initSmoothScrollAndScrollSpy() {
+            const navContainer = document.querySelector('.landing-nav-links');
+            let navIndicator = navContainer ? navContainer.querySelector('.nav-active-indicator') : null;
+
+            if (navContainer && !navIndicator) {
+                navIndicator = document.createElement('div');
+                navIndicator.className = 'nav-active-indicator';
+                navContainer.appendChild(navIndicator);
+            }
+
+            function updateNavIndicator(targetElement) {
+                if (!navIndicator || !navContainer) return;
+                if (targetElement && targetElement.offsetParent !== null) {
+                    const containerRect = navContainer.getBoundingClientRect();
+                    const linkRect = targetElement.getBoundingClientRect();
+                    const leftOffset = linkRect.left - containerRect.left;
+
+                    navIndicator.style.transform = `translateX(${leftOffset}px)`;
+                    navIndicator.style.width = `${linkRect.width}px`;
+                    navIndicator.style.opacity = '1';
+                } else {
+                    navIndicator.style.opacity = '0';
+                }
+            }
+
+            // Custom smooth scroll using requestAnimationFrame for organic animation
+            function smoothScrollTo(targetY, duration = 650) {
+                const startY = window.pageYOffset;
+                const diff = targetY - startY;
+                if (Math.abs(diff) < 2) return;
+                
+                let start = null;
+
+                function step(timestamp) {
+                    if (!start) start = timestamp;
+                    const progress = timestamp - start;
+                    const percentage = Math.min(progress / duration, 1);
+
+                    // Easing: easeInOutCubic curve
+                    const ease = percentage < 0.5
+                        ? 4 * percentage * percentage * percentage
+                        : 1 - Math.pow(-2 * percentage + 2, 3) / 2;
+
+                    window.scrollTo(0, startY + diff * ease);
+
+                    if (progress < duration) {
+                        requestAnimationFrame(step);
+                    }
+                }
+                requestAnimationFrame(step);
+            }
+
+            const mainSections = document.querySelectorAll('section[id], div[id="menu"]');
+            const navLinks = document.querySelectorAll('.landing-nav-links a[href^="#"]');
+
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function (e) {
                     const targetId = this.getAttribute('href');
@@ -1702,14 +1762,17 @@
                     const targetElement = document.querySelector(targetId);
                     if (targetElement) {
                         e.preventDefault();
-                        const headerOffset = 80;
+                        const headerOffset = 76;
                         const elementPosition = targetElement.getBoundingClientRect().top;
                         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
-                        window.scrollTo({
-                            top: offsetPosition,
-                            behavior: 'smooth'
-                        });
+                        if (this.closest('.landing-nav-links')) {
+                            navLinks.forEach(l => l.classList.remove('active'));
+                            this.classList.add('active');
+                            updateNavIndicator(this);
+                        }
+
+                        smoothScrollTo(offsetPosition, 650);
 
                         if (history.pushState) {
                             history.pushState(null, null, targetId);
@@ -1718,8 +1781,19 @@
                 });
             });
 
-            const mainSections = document.querySelectorAll('section[id], div[id="menu"]');
-            const navLinks = document.querySelectorAll('.landing-nav-links a[href^="#"]');
+            // Hover indicator preview effect
+            navLinks.forEach(link => {
+                link.addEventListener('mouseenter', function () {
+                    updateNavIndicator(this);
+                });
+            });
+
+            if (navContainer) {
+                navContainer.addEventListener('mouseleave', function () {
+                    const activeLink = navContainer.querySelector('a.active');
+                    updateNavIndicator(activeLink);
+                });
+            }
 
             function onScrollHighlightNav() {
                 let currentSectionId = '';
@@ -1733,16 +1807,28 @@
                     }
                 });
 
+                let currentActiveLink = null;
                 navLinks.forEach(link => {
                     link.classList.remove('active');
                     if (currentSectionId && link.getAttribute('href') === '#' + currentSectionId) {
                         link.classList.add('active');
+                        currentActiveLink = link;
                     }
                 });
+
+                if (!currentActiveLink && navLinks.length > 0 && window.pageYOffset < 200) {
+                    navLinks[0].classList.add('active');
+                    currentActiveLink = navLinks[0];
+                }
+
+                updateNavIndicator(currentActiveLink);
             }
 
             window.addEventListener('scroll', onScrollHighlightNav, { passive: true });
+            window.addEventListener('resize', onScrollHighlightNav, { passive: true });
+
             onScrollHighlightNav();
+            setTimeout(onScrollHighlightNav, 150);
         }
 
         document.addEventListener('DOMContentLoaded', function () {

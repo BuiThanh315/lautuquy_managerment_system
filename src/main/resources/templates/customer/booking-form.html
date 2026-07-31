@@ -915,6 +915,25 @@
                 <i class="bi bi-exclamation-circle-fill"></i> <span th:text="${errorMessage}"></span>
             </div>
 
+            <!-- ============================================================
+                 SEARCHBOX: LỊCH SỬ ĐẶT BÀN
+                 ============================================================ -->
+            <div class="booking-card" style="margin-bottom: 24px;">
+                <h2 class="card-header-title" style="border-bottom: 1.5px dashed rgba(155, 15, 6, 0.18); margin-bottom: 16px; padding-bottom: 12px;">
+                    <i class="bi bi-clock-history" style="color:#D53E0F;"></i> Lịch Sử Đặt Bàn
+                </h2>
+                <form th:action="@{/customer/booking-history}" action="/customer/booking-history" method="get" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                    <div style="flex: 1; min-width: 250px; position: relative;">
+                        <i class="bi bi-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #9a7060; font-size: 1rem;"></i>
+                        <input type="text" name="keyword" class="form-input-custom" style="padding-left: 40px;"
+                               placeholder="Nhập số điện thoại hoặc Email để tìm kiếm lịch sử đặt bàn..." required />
+                    </div>
+                    <button type="submit" class="btn-hero-primary" style="padding: 10px 28px; font-size: 0.95rem; white-space: nowrap;">
+                        <i class="bi bi-search"></i> Tìm kiếm
+                    </button>
+                </form>
+            </div>
+
             <form action="/customer/booking" method="post" id="bookingForm">
 
                 <!-- Container cho Hidden Inputs gửi danh sách món preorder sang Controller -->

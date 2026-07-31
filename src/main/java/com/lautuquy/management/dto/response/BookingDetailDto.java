@@ -9,6 +9,7 @@ public class BookingDetailDto {
     private Long id;
     private String customerName;
     private String customerPhone;
+    private String customerEmail;
     private String bookingDate;
     private String bookingTime;
     private String tableTypeName;
@@ -70,6 +71,9 @@ public class BookingDetailDto {
 
     public String getCustomerPhone() { return customerPhone; }
     public void setCustomerPhone(String customerPhone) { this.customerPhone = customerPhone; }
+
+    public String getCustomerEmail() { return customerEmail; }
+    public void setCustomerEmail(String customerEmail) { this.customerEmail = customerEmail; }
 
     public String getBookingDate() { return bookingDate; }
     public void setBookingDate(String bookingDate) { this.bookingDate = bookingDate; }

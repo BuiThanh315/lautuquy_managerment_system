@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/customer/booking")
+@RequestMapping("/customer")
 public class BookingController {
 
     private final BookingService bookingService;
@@ -46,7 +46,7 @@ public class BookingController {
         this.tableLockService = tableLockService;
     }
 
-    @GetMapping
+    @GetMapping("/booking")
     public String showBookingForm(Model model, Principal principal) {
         BookingRequest bookingRequest = new BookingRequest();
         Booking seatedBooking = null;
@@ -75,7 +75,7 @@ public class BookingController {
         return "customer/booking-form";
     }
 
-    @PostMapping
+    @PostMapping("/booking")
     public String processBooking(@Valid @ModelAttribute("bookingRequest") BookingRequest request,
                                  BindingResult bindingResult,
                                  Principal principal,
@@ -138,7 +138,7 @@ public class BookingController {
         }
     }
 
-    @PostMapping("/api-submit")
+    @PostMapping("/booking/api-submit")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> submitBookingApi(
             @Valid @ModelAttribute("bookingRequest") BookingRequest request,
@@ -198,16 +198,25 @@ public class BookingController {
         }
     }
 
-    @GetMapping("/history")
-    public String bookingHistory(Principal principal, Model model) {
-        if (principal == null) {
-            model.addAttribute("bookings", java.util.Collections.emptyList());
-            model.addAttribute("infoMessage", "Bạn chưa đăng nhập. Để xem lại lịch sử các đơn đã đặt trước đây, vui lòng nhấn nút Đăng Nhập.");
-            model.addAttribute("pageTitle", "Lịch Sử Đặt Bàn");
-            return "customer/booking-history";
+    @GetMapping({"/booking/history", "/booking-history"})
+    public String bookingHistory(@RequestParam(value = "keyword", required = false) String keyword,
+                                 Principal principal,
+                                 Model model) {
+        List<Booking> bookings;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            bookings = bookingService.searchBookingsByPhoneOrEmail(keyword.trim());
+            model.addAttribute("keyword", keyword.trim());
+            if (bookings.isEmpty()) {
+                model.addAttribute("infoMessage", "Không tìm thấy đơn đặt bàn nào với thông tin: " + keyword.trim());
+            }
+        } else if (principal != null) {
+            bookings = bookingService.getBookingsByAccount(principal.getName());
+        } else {
+            bookings = java.util.Collections.emptyList();
+            model.addAttribute("infoMessage", "Vui lòng nhập Số điện thoại hoặc Email để tìm kiếm đơn đặt bàn.");
         }
-        List<Booking> bookings = bookingService.getBookingsByAccount(principal.getName());
-        Booking seatedBooking = bookingService.getActiveSeatedBooking(principal.getName());
+
+        Booking seatedBooking = (principal != null) ? bookingService.getActiveSeatedBooking(principal.getName()) : null;
         model.addAttribute("bookings", bookings);
         model.addAttribute("seatedBooking", seatedBooking);
         model.addAttribute("isSeated", seatedBooking != null);
@@ -215,16 +224,32 @@ public class BookingController {
         return "customer/booking-history";
     }
 
-    @PostMapping("/{id}/cancel")
+    @GetMapping({"/booking/api/detail/{id}", "/booking-history/api/detail/{id}"})
+    @ResponseBody
+    public ResponseEntity<BookingDetailDto> getBookingDetailApi(@PathVariable("id") Long id) {
+        try {
+            BookingDetailDto detail = bookingService.getBookingDetail(id);
+            return ResponseEntity.ok(detail);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping({"/booking/{id}/cancel", "/booking-history/{id}/cancel", "/booking/history/{id}/cancel"})
     public String cancelBooking(@PathVariable("id") Long id,
+                                @RequestParam(value = "keyword", required = false) String keyword,
                                 Principal principal,
                                 RedirectAttributes redirectAttributes) {
         try {
-            bookingService.cancelBooking(id, principal.getName());
+            String username = (principal != null) ? principal.getName() : null;
+            bookingService.cancelBooking(id, username);
             redirectAttributes.addFlashAttribute("successMessage", "Đã hủy đơn đặt bàn thành công.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Không thể hủy đơn: " + e.getMessage());
         }
-        return "redirect:/customer/booking/history";
+        if (keyword != null && !keyword.isBlank()) {
+            return "redirect:/customer/booking-history?keyword=" + java.net.URLEncoder.encode(keyword, java.nio.charset.StandardCharsets.UTF_8);
+        }
+        return "redirect:/customer/booking-history";
     }
 }

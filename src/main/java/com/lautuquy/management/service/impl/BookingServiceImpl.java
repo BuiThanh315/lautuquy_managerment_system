@@ -123,6 +123,14 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public List<Booking> searchBookingsByPhoneOrEmail(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        return bookingRepository.searchByPhoneOrEmail(keyword.trim());
+    }
+
+    @Override
     public List<Booking> getAllBookings() {
         return bookingRepository.findAll();
     }
@@ -142,7 +150,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public void cancelBooking(Long id, String username) {
         Booking booking = getBookingById(id);
-        if (!booking.getAccount().getUsername().equals(username)) {
+        if (username != null && booking.getAccount() != null && !booking.getAccount().getUsername().equals(username)) {
             throw new IllegalArgumentException("Bạn không có quyền hủy đơn đặt bàn này.");
         }
         if (booking.getStatus() != Booking.Status.PENDING) {
@@ -260,6 +268,7 @@ public class BookingServiceImpl implements BookingService {
         dto.setId(b.getId());
         dto.setCustomerName(b.getCustomerName());
         dto.setCustomerPhone(b.getCustomerPhone());
+        dto.setCustomerEmail(b.getAccount() != null && b.getAccount().getEmail() != null ? b.getAccount().getEmail() : "—");
         dto.setBookingDate(b.getBookingDate() != null ? b.getBookingDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
         dto.setBookingTime(b.getBookingTime() != null ? b.getBookingTime().toString() : "");
 

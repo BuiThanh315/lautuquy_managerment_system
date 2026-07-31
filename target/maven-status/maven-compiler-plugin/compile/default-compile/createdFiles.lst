@@ -9,10 +9,14 @@ com\lautuquy\management\repository\OrderItemRepository.class
 com\lautuquy\management\service\BookingService.class
 com\lautuquy\management\entity\RestaurantTable$Status.class
 com\lautuquy\management\entity\BookingPreorder.class
+com\lautuquy\management\controller\customer\CustomerLandingController$CategoryGroup.class
+com\lautuquy\management\dto\response\BookingDetailDto.class
 com\lautuquy\management\service\impl\InvoiceServiceImpl.class
 com\lautuquy\management\controller\admin\AdminFeedbackController.class
 com\lautuquy\management\controller\AuthController.class
+com\lautuquy\management\dto\response\BookingDetailDto$PreorderItemDto.class
 com\lautuquy\management\service\ReportService.class
+com\lautuquy\management\controller\CustomErrorPageController.class
 com\lautuquy\management\entity\Invoice$PaymentStatus.class
 com\lautuquy\management\repository\OrderRepository.class
 com\lautuquy\management\repository\DishRepository.class
@@ -84,6 +88,7 @@ com\lautuquy\management\service\OrderService.class
 com\lautuquy\management\exception\ResourceNotFoundException.class
 com\lautuquy\management\service\impl\DishServiceImpl.class
 com\lautuquy\management\repository\TableTypeRepository.class
+com\lautuquy\management\controller\customer\CustomerLandingController.class
 com\lautuquy\management\service\impl\CategoryServiceImpl.class
 com\lautuquy\management\service\TableLockService.class
 com\lautuquy\management\LauTuQuyApplication.class

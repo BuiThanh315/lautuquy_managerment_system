@@ -856,11 +856,7 @@
                 <a th:href="@{/customer/booking}" class="btn-header-booking">
                     <i class="bi bi-calendar-check-fill"></i> Đặt Bàn Ngay
                 </a>
-                <th:block sec:authorize="isAnonymous()">
-                    <a th:href="@{/auth/login}" class="btn-header-auth">
-                        <i class="bi bi-box-arrow-in-right"></i> Đăng Nhập
-                    </a>
-                </th:block>
+
                 <th:block sec:authorize="isAuthenticated()">
                     <th:block sec:authorize="hasRole('CUSTOMER')">
                         <a th:href="@{/customer/landing}" class="btn-header-auth">

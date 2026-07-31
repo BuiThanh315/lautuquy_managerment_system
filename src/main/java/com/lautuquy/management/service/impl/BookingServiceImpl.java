@@ -126,7 +126,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new ResourceNotFoundException("Tài khoản", username));
         List<Booking> accountBookings = bookingRepository.findByAccountIdOrderByCreatedAtDesc(account.getId());
         if (account.getPhone() != null && !account.getPhone().isBlank()) {
-            List<Booking> phoneBookings = bookingRepository.searchByPhoneOrEmail(account.getPhone());
+            List<Booking> phoneBookings = searchBookingsByPhoneOrEmail(account.getPhone());
             for (Booking b : phoneBookings) {
                 if (accountBookings.stream().noneMatch(existing -> existing.getId().equals(b.getId()))) {
                     accountBookings.add(b);
@@ -134,7 +134,7 @@ public class BookingServiceImpl implements BookingService {
             }
         }
         if (account.getEmail() != null && !account.getEmail().isBlank()) {
-            List<Booking> emailBookings = bookingRepository.searchByPhoneOrEmail(account.getEmail());
+            List<Booking> emailBookings = searchBookingsByPhoneOrEmail(account.getEmail());
             for (Booking b : emailBookings) {
                 if (accountBookings.stream().noneMatch(existing -> existing.getId().equals(b.getId()))) {
                     accountBookings.add(b);
@@ -150,6 +150,10 @@ public class BookingServiceImpl implements BookingService {
                 }
             }
         }
+        accountBookings.sort((b1, b2) -> {
+            if (b1.getCreatedAt() == null || b2.getCreatedAt() == null) return 0;
+            return b2.getCreatedAt().compareTo(b1.getCreatedAt());
+        });
         return accountBookings;
     }
 
@@ -159,20 +163,184 @@ public class BookingServiceImpl implements BookingService {
             return java.util.Collections.emptyList();
         }
         String cleanKeyword = keyword.trim();
-        List<Booking> results = bookingRepository.searchByPhoneOrEmail(cleanKeyword);
+        String digitsOnly = cleanKeyword.replaceAll("[^0-9]", "");
 
-        for (Booking b : results) {
-            if (b.getCustomerEmail() == null || b.getCustomerEmail().isBlank()) {
-                if (b.getAccount() != null && b.getAccount().getEmail() != null && !b.getAccount().getEmail().isBlank()) {
-                    b.setCustomerEmail(b.getAccount().getEmail());
-                } else if (b.getCustomerPhone() != null && !b.getCustomerPhone().isBlank()) {
-                    var accOpt = accountRepository.findFirstByPhone(b.getCustomerPhone());
-                    if (accOpt.isPresent() && accOpt.get().getEmail() != null && !accOpt.get().getEmail().isBlank()) {
-                        b.setCustomerEmail(accOpt.get().getEmail());
+        // Tập hợp chứa các định danh (Email, SĐT, Account ID) được mở rộng
+        java.util.Set<String> targetEmails = new java.util.HashSet<>();
+        java.util.Set<String> targetPhones = new java.util.HashSet<>();
+        java.util.Set<Long> targetAccountIds = new java.util.HashSet<>();
+
+        if (cleanKeyword.contains("@")) {
+            targetEmails.add(cleanKeyword.toLowerCase());
+        }
+        if (!digitsOnly.isEmpty()) {
+            targetPhones.add(digitsOnly);
+            targetPhones.add(cleanKeyword);
+        }
+
+        // 1. Quét danh sách Account để khớp với keyword (khớp SĐT, Email, Username, FullName)
+        List<Account> allAccounts = accountRepository.findAll();
+        for (Account acc : allAccounts) {
+            boolean accMatch = false;
+            if (acc.getPhone() != null && !acc.getPhone().isBlank()) {
+                String accDigits = acc.getPhone().replaceAll("[^0-9]", "");
+                if (acc.getPhone().equalsIgnoreCase(cleanKeyword) || (!digitsOnly.isEmpty() && accDigits.equals(digitsOnly))) {
+                    accMatch = true;
+                }
+            }
+            if (acc.getEmail() != null && !acc.getEmail().isBlank()) {
+                if (acc.getEmail().equalsIgnoreCase(cleanKeyword)) {
+                    accMatch = true;
+                }
+            }
+            if (acc.getUsername() != null && acc.getUsername().equalsIgnoreCase(cleanKeyword)) {
+                accMatch = true;
+            }
+            if (acc.getFullName() != null && acc.getFullName().equalsIgnoreCase(cleanKeyword)) {
+                accMatch = true;
+            }
+
+            if (accMatch) {
+                targetAccountIds.add(acc.getId());
+                if (acc.getEmail() != null && !acc.getEmail().isBlank()) {
+                    targetEmails.add(acc.getEmail().toLowerCase());
+                }
+                if (acc.getPhone() != null && !acc.getPhone().isBlank()) {
+                    targetPhones.add(acc.getPhone().replaceAll("[^0-9]", ""));
+                    targetPhones.add(acc.getPhone().trim());
+                }
+            }
+        }
+
+        // 2. Lấy toàn bộ danh sách Booking để quét khớp
+        List<Booking> allBookings = bookingRepository.findAll();
+
+        // 3. Quét lần 1: Tìm các Booking trực tiếp khớp với keyword nhập vào
+        for (Booking b : allBookings) {
+            boolean isMatch = false;
+            String bPhoneDigits = b.getCustomerPhone() != null ? b.getCustomerPhone().replaceAll("[^0-9]", "") : "";
+
+            if (b.getCustomerPhone() != null && (b.getCustomerPhone().equalsIgnoreCase(cleanKeyword) || (!digitsOnly.isEmpty() && !bPhoneDigits.isEmpty() && bPhoneDigits.equals(digitsOnly)))) {
+                isMatch = true;
+            }
+            if (b.getCustomerEmail() != null && b.getCustomerEmail().equalsIgnoreCase(cleanKeyword)) {
+                isMatch = true;
+            }
+            if (b.getCustomerName() != null && b.getCustomerName().equalsIgnoreCase(cleanKeyword)) {
+                isMatch = true;
+            }
+            if (b.getAccount() != null) {
+                if (targetAccountIds.contains(b.getAccount().getId())) {
+                    isMatch = true;
+                }
+                if (b.getAccount().getEmail() != null && b.getAccount().getEmail().equalsIgnoreCase(cleanKeyword)) {
+                    isMatch = true;
+                }
+                String accPhoneDigits = b.getAccount().getPhone() != null ? b.getAccount().getPhone().replaceAll("[^0-9]", "") : "";
+                if (b.getAccount().getPhone() != null && (b.getAccount().getPhone().equalsIgnoreCase(cleanKeyword) || (!digitsOnly.isEmpty() && !accPhoneDigits.isEmpty() && accPhoneDigits.equals(digitsOnly)))) {
+                    isMatch = true;
+                }
+            }
+
+            if (isMatch) {
+                if (b.getCustomerEmail() != null && !b.getCustomerEmail().isBlank()) {
+                    targetEmails.add(b.getCustomerEmail().toLowerCase());
+                }
+                if (b.getCustomerPhone() != null && !b.getCustomerPhone().isBlank()) {
+                    targetPhones.add(b.getCustomerPhone().replaceAll("[^0-9]", ""));
+                    targetPhones.add(b.getCustomerPhone().trim());
+                }
+                if (b.getAccount() != null) {
+                    targetAccountIds.add(b.getAccount().getId());
+                    if (b.getAccount().getEmail() != null && !b.getAccount().getEmail().isBlank()) {
+                        targetEmails.add(b.getAccount().getEmail().toLowerCase());
+                    }
+                    if (b.getAccount().getPhone() != null && !b.getAccount().getPhone().isBlank()) {
+                        targetPhones.add(b.getAccount().getPhone().replaceAll("[^0-9]", ""));
+                        targetPhones.add(b.getAccount().getPhone().trim());
                     }
                 }
             }
         }
+
+        // 4. Quét bổ sung Account: Nếu có SĐT hoặc Email nào thu được từ Booking mà thuộc về 1 Account, thêm Account đó vào targetAccountIds
+        for (Account acc : allAccounts) {
+            boolean secondaryMatch = false;
+            if (acc.getEmail() != null && targetEmails.contains(acc.getEmail().toLowerCase())) {
+                secondaryMatch = true;
+            }
+            if (acc.getPhone() != null && !acc.getPhone().isBlank()) {
+                String accDigits = acc.getPhone().replaceAll("[^0-9]", "");
+                if (targetPhones.contains(accDigits) || targetPhones.contains(acc.getPhone().trim())) {
+                    secondaryMatch = true;
+                }
+            }
+            if (secondaryMatch) {
+                targetAccountIds.add(acc.getId());
+                if (acc.getEmail() != null && !acc.getEmail().isBlank()) {
+                    targetEmails.add(acc.getEmail().toLowerCase());
+                }
+                if (acc.getPhone() != null && !acc.getPhone().isBlank()) {
+                    targetPhones.add(acc.getPhone().replaceAll("[^0-9]", ""));
+                    targetPhones.add(acc.getPhone().trim());
+                }
+            }
+        }
+
+        // 5. Quét lần 2: Thu thập toàn bộ Booking khớp với bất kỳ Email, SĐT hoặc Account ID đã tổng hợp
+        List<Booking> results = new java.util.ArrayList<>();
+        java.util.Set<Long> addedBookingIds = new java.util.HashSet<>();
+
+        for (Booking b : allBookings) {
+            boolean include = false;
+
+            if (b.getAccount() != null && targetAccountIds.contains(b.getAccount().getId())) {
+                include = true;
+            }
+            if (b.getCustomerEmail() != null && targetEmails.contains(b.getCustomerEmail().toLowerCase())) {
+                include = true;
+            }
+            if (b.getAccount() != null && b.getAccount().getEmail() != null && targetEmails.contains(b.getAccount().getEmail().toLowerCase())) {
+                include = true;
+            }
+            if (b.getCustomerPhone() != null && !b.getCustomerPhone().isBlank()) {
+                String bPhoneDigits = b.getCustomerPhone().replaceAll("[^0-9]", "");
+                if (targetPhones.contains(bPhoneDigits) || targetPhones.contains(b.getCustomerPhone().trim())) {
+                    include = true;
+                }
+            }
+            if (b.getAccount() != null && b.getAccount().getPhone() != null && !b.getAccount().getPhone().isBlank()) {
+                String accPhoneDigits = b.getAccount().getPhone().replaceAll("[^0-9]", "");
+                if (targetPhones.contains(accPhoneDigits) || targetPhones.contains(b.getAccount().getPhone().trim())) {
+                    include = true;
+                }
+            }
+
+            if (include && !addedBookingIds.contains(b.getId())) {
+                addedBookingIds.add(b.getId());
+
+                // Điền email hiển thị nếu bị khuyết
+                if (b.getCustomerEmail() == null || b.getCustomerEmail().isBlank()) {
+                    if (b.getAccount() != null && b.getAccount().getEmail() != null && !b.getAccount().getEmail().isBlank()) {
+                        b.setCustomerEmail(b.getAccount().getEmail());
+                    } else if (b.getCustomerPhone() != null && !b.getCustomerPhone().isBlank()) {
+                        var accOpt = accountRepository.findFirstByPhone(b.getCustomerPhone());
+                        if (accOpt.isPresent() && accOpt.get().getEmail() != null && !accOpt.get().getEmail().isBlank()) {
+                            b.setCustomerEmail(accOpt.get().getEmail());
+                        }
+                    }
+                }
+
+                results.add(b);
+            }
+        }
+
+        // Sắp xếp giảm dần theo thời gian tạo mới nhất
+        results.sort((b1, b2) -> {
+            if (b1.getCreatedAt() == null || b2.getCreatedAt() == null) return 0;
+            return b2.getCreatedAt().compareTo(b1.getCreatedAt());
+        });
+
         return results;
     }
 

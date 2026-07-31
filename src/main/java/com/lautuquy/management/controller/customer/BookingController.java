@@ -201,13 +201,15 @@ public class BookingController {
     @GetMapping({"/booking/history", "/booking-history"})
     public String bookingHistory(@RequestParam(value = "keyword", required = false) String keyword,
                                  Principal principal,
+                                 jakarta.servlet.http.HttpServletRequest request,
                                  Model model) {
+        request.getSession(true);
         List<Booking> bookings;
         if (keyword != null && !keyword.trim().isEmpty()) {
             bookings = bookingService.searchBookingsByPhoneOrEmail(keyword.trim());
             model.addAttribute("keyword", keyword.trim());
             if (bookings.isEmpty()) {
-                model.addAttribute("infoMessage", "Không tìm thấy đơn đặt bàn nào với thông tin: " + keyword.trim());
+                model.addAttribute("infoMessage", "Không tìm thấy đơn đặt bàn nào với thông tin \"" + keyword.trim() + "\" hoặc bạn đã nhập sai thông tin tìm kiếm. Vui lòng kiểm tra lại Số điện thoại hoặc Email.");
             }
         } else if (principal != null) {
             bookings = bookingService.getBookingsByAccount(principal.getName());

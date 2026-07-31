@@ -23,7 +23,7 @@ spring:
   thymeleaf:
     prefix: classpath:/templates/
     suffix: .html
-    cache: true
+    cache: false
     encoding: UTF-8
 
   messages:

@@ -200,6 +200,7 @@ public class BookingController {
 
     @GetMapping({"/booking/history", "/booking-history"})
     public String bookingHistory(@RequestParam(value = "keyword", required = false) String keyword,
+                                 @RequestHeader(value = "X-Requested-With", required = false) String requestedWith,
                                  Principal principal,
                                  jakarta.servlet.http.HttpServletRequest request,
                                  Model model) {
@@ -223,6 +224,11 @@ public class BookingController {
         model.addAttribute("seatedBooking", seatedBooking);
         model.addAttribute("isSeated", seatedBooking != null);
         model.addAttribute("pageTitle", "Lịch Sử Đặt Bàn");
+
+        if ("XMLHttpRequest".equals(requestedWith)) {
+            return "customer/booking-history :: bookingListSection";
+        }
+
         return "customer/booking-history";
     }
 

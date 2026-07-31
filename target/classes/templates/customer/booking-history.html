@@ -757,17 +757,6 @@
              ================================================================ -->
         <div class="booking-container">
 
-            <!-- System Messages Alerts -->
-            <div th:if="${successMessage}" class="alert alert-success" style="margin-bottom:24px; padding:14px 20px; border-radius:14px; background:#d4edda; color:#155724; border:1px solid #c3e6cb;">
-                <i class="bi bi-check-circle-fill"></i> <span th:text="${successMessage}"></span>
-            </div>
-            <div th:if="${errorMessage}" class="alert alert-danger" style="margin-bottom:24px; padding:14px 20px; border-radius:14px; background:#f8d7da; color:#721c24; border:1px solid #f5c6cb;">
-                <i class="bi bi-exclamation-circle-fill"></i> <span th:text="${errorMessage}"></span>
-            </div>
-            <div th:if="${infoMessage}" class="alert alert-info" style="margin-bottom:24px; padding:14px 20px; border-radius:14px; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd;">
-                <i class="bi bi-info-circle-fill"></i> <span th:text="${infoMessage}"></span>
-            </div>
-
             <!-- ============================================================
                  CARD 1: TRA CỨU ĐƠN ĐẶT BÀN (SEARCHBOX)
                  ============================================================ -->
@@ -775,112 +764,128 @@
                 <h2 class="card-header-title">
                     <i class="bi bi-search" style="color:#D53E0F;"></i> Tra Cứu Đơn Đặt Bàn
                 </h2>
-                <form th:action="@{/customer/booking-history}" action="/customer/booking-history" method="get" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                <form id="searchBookingForm" th:action="@{/customer/booking-history}" action="/customer/booking-history" method="get" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
                     <div style="flex: 1; min-width: 260px; position: relative;">
                         <i class="bi bi-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #9a7060; font-size: 1rem;"></i>
-                        <input type="text" name="keyword" th:value="${keyword}" class="form-input-custom" style="padding-left: 40px;"
+                        <input type="text" id="searchInput" name="keyword" th:value="${keyword}" class="form-input-custom" style="padding-left: 40px;"
                                placeholder="Nhập số điện thoại hoặc Email để tìm kiếm lịch sử đặt bàn..." required />
                     </div>
                     <button type="submit" class="btn-hero-primary" style="white-space: nowrap;">
                         <i class="bi bi-search"></i> Tìm kiếm
                     </button>
-                    <a th:if="${keyword != null and !keyword.isBlank()}" th:href="@{/customer/booking-history}" class="btn-hero-secondary" style="white-space: nowrap;">
+                    <a id="clearSearchBtn" th:if="${keyword != null and !keyword.isBlank()}" th:href="@{/customer/booking-history}" class="btn-hero-secondary" style="white-space: nowrap;">
                         <i class="bi bi-x-lg"></i> Xóa lọc
                     </a>
                 </form>
             </div>
 
             <!-- ============================================================
-                 CARD 2: DANH SÁCH CÁC ĐƠN ĐẶT BÀN
+                 DYNAMIC AJAX CONTAINER FOR SYSTEM ALERTS & BOOKINGS LIST
                  ============================================================ -->
-            <div class="booking-card">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px; padding-bottom:12px; border-bottom:1.5px dashed rgba(155,15,6,0.18);">
-                    <h2 class="card-header-title" style="border-bottom:none; margin:0; padding:0;">
-                        <i class="bi bi-journal-check" style="color:#D53E0F;"></i> Danh Sách Đơn Đặt Bàn
-                    </h2>
-                    <span th:if="${keyword != null and !keyword.isBlank()}" style="font-size:0.88rem; color:#666; font-weight:600;">
-                        Kết quả tìm kiếm cho: <strong th:text="${keyword}" style="color:#D53E0F;"></strong>
-                    </span>
+            <div id="bookingListSection" th:fragment="bookingListSection">
+
+                <!-- System Messages Alerts -->
+                <div th:if="${successMessage}" class="alert alert-success" style="margin-bottom:24px; padding:14px 20px; border-radius:14px; background:#d4edda; color:#155724; border:1px solid #c3e6cb;">
+                    <i class="bi bi-check-circle-fill"></i> <span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${errorMessage}" class="alert alert-danger" style="margin-bottom:24px; padding:14px 20px; border-radius:14px; background:#f8d7da; color:#721c24; border:1px solid #f5c6cb;">
+                    <i class="bi bi-exclamation-circle-fill"></i> <span th:text="${errorMessage}"></span>
+                </div>
+                <div th:if="${infoMessage}" class="alert alert-info" style="margin-bottom:24px; padding:14px 20px; border-radius:14px; background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd;">
+                    <i class="bi bi-info-circle-fill"></i> <span th:text="${infoMessage}"></span>
                 </div>
 
-                <!-- Bảng Danh Sách Đơn Đặt Bàn -->
-                <div th:if="${not #lists.isEmpty(bookings)}" class="preorder-table-wrap">
-                    <table class="preorder-table">
-                        <thead>
-                            <tr>
-                                <th style="width:85px; white-space:nowrap;">#Mã Đơn</th>
-                                <th style="min-width:120px;">Tên Khách Hàng</th>
-                                <th style="white-space:nowrap;">Số Điện Thoại</th>
-                                <th style="word-break:break-word; max-width:200px;">Email</th>
-                                <th style="white-space:nowrap;">Ngày &amp; Giờ Đến</th>
-                                <th style="white-space:nowrap;">Trạng Thái</th>
-                                <th style="text-align:center; width:110px; white-space:nowrap;">Thao Tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="b : ${bookings}">
-                                <td>
-                                    <strong th:text="'#BK-' + ${b.id}" style="color:#9B0F06; font-weight:800;">#BK-1</strong>
-                                </td>
-                                <td>
-                                    <strong th:text="${b.customerName}" style="color:#2d0a06;">Nguyễn Văn A</strong>
-                                </td>
-                                <td th:text="${b.customerPhone}" style="white-space:nowrap;">0912345678</td>
-                                <td th:text="${b.customerEmail != null and !b.customerEmail.isBlank() ? b.customerEmail : (b.account != null and b.account.email != null and !b.account.email.isBlank() ? b.account.email : '—')}" style="word-break:break-word; max-width:200px;">khach@gmail.com</td>
-                                <td th:text="${#temporals.format(b.bookingDate, 'dd/MM/yyyy')} + ' ' + ${b.bookingTime}" style="font-weight:600; white-space:nowrap;">28/07/2026 18:30</td>
-                                <td style="white-space:nowrap;">
-                                    <span th:switch="${b.status.name()}">
-                                        <span th:case="'PENDING'" class="status-badge-custom status-badge-pending">
-                                            <i class="bi bi-hourglass-split"></i> Chờ duyệt
-                                        </span>
-                                        <span th:case="'CONFIRMED'" class="status-badge-custom status-badge-confirmed">
-                                            <i class="bi bi-check-circle-fill"></i> Đã xác nhận
-                                        </span>
-                                        <span th:case="'SEATED'" class="status-badge-custom status-badge-seated">
-                                            <i class="bi bi-person-check-fill"></i> Đã nhận bàn
-                                        </span>
-                                        <span th:case="'COMPLETED'" class="status-badge-custom status-badge-completed">
-                                            <i class="bi bi-award-fill"></i> Hoàn tất
-                                        </span>
-                                        <span th:case="'CANCELLED'" class="status-badge-custom status-badge-cancelled">
-                                            <i class="bi bi-x-circle-fill"></i> Đã hủy
-                                        </span>
-                                    </span>
-                                </td>
-                                <td style="text-align:center; vertical-align:middle;">
-                                    <div style="display:inline-flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; width:95px; margin:0 auto;">
-                                        <!-- Button Chi tiết -->
-                                        <button type="button" class="btn-table-action-detail" th:data-id="${b.id}" th:onclick="|openBookingDetail(${b.id})|" title="Xem chi tiết đơn đặt bàn" style="width:100%; justify-content:center;">
-                                            <i class="bi bi-info-circle-fill"></i> Chi tiết
-                                        </button>
+                <!-- CARD 2: DANH SÁCH CÁC ĐƠN ĐẶT BÀN -->
+                <div class="booking-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px; padding-bottom:12px; border-bottom:1.5px dashed rgba(155,15,6,0.18);">
+                        <h2 class="card-header-title" style="border-bottom:none; margin:0; padding:0;">
+                            <i class="bi bi-journal-check" style="color:#D53E0F;"></i> Danh Sách Đơn Đặt Bàn
+                        </h2>
+                        <span th:if="${keyword != null and !keyword.isBlank()}" style="font-size:0.88rem; color:#666; font-weight:600;">
+                            Kết quả tìm kiếm cho: <strong th:text="${keyword}" style="color:#D53E0F;"></strong>
+                        </span>
+                    </div>
 
-                                        <!-- Button Hủy đơn (Chỉ hiển thị khi Trạng thái là PENDING) -->
-                                        <form th:if="${b.status.name() == 'PENDING'}"
-                                              th:action="${'/customer/booking-history/' + b.id + '/cancel'}" method="post"
-                                              style="display:block; width:100%; margin:0;">
-                                            <input type="hidden" name="keyword" th:value="${keyword}" />
-                                            <button type="submit" class="btn-table-action-cancel" title="Hủy đơn đặt bàn này" style="width:100%; justify-content:center;"
-                                                    onclick="return confirm('Bạn có chắc chắn muốn hủy đơn đặt bàn này?');">
-                                                <i class="bi bi-x-circle-fill"></i> Hủy đơn
+                    <!-- Bảng Danh Sách Đơn Đặt Bàn -->
+                    <div th:if="${not #lists.isEmpty(bookings)}" class="preorder-table-wrap">
+                        <table class="preorder-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:85px; white-space:nowrap;">#Mã Đơn</th>
+                                    <th style="min-width:120px;">Tên Khách Hàng</th>
+                                    <th style="white-space:nowrap;">Số Điện Thoại</th>
+                                    <th style="word-break:break-word; max-width:200px;">Email</th>
+                                    <th style="white-space:nowrap;">Ngày &amp; Giờ Đến</th>
+                                    <th style="white-space:nowrap;">Trạng Thái</th>
+                                    <th style="text-align:center; width:110px; white-space:nowrap;">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="b : ${bookings}">
+                                    <td>
+                                        <strong th:text="'#BK-' + ${b.id}" style="color:#9B0F06; font-weight:800;">#BK-1</strong>
+                                    </td>
+                                    <td>
+                                        <strong th:text="${b.customerName}" style="color:#2d0a06;">Nguyễn Văn A</strong>
+                                    </td>
+                                    <td th:text="${b.customerPhone}" style="white-space:nowrap;">0912345678</td>
+                                    <td th:text="${b.customerEmail != null and !b.customerEmail.isBlank() ? b.customerEmail : (b.account != null and b.account.email != null and !b.account.email.isBlank() ? b.account.email : '—')}" style="word-break:break-word; max-width:200px;">khach@gmail.com</td>
+                                    <td th:text="${#temporals.format(b.bookingDate, 'dd/MM/yyyy')} + ' ' + ${b.bookingTime}" style="font-weight:600; white-space:nowrap;">28/07/2026 18:30</td>
+                                    <td style="white-space:nowrap;">
+                                        <span th:switch="${b.status.name()}">
+                                            <span th:case="'PENDING'" class="status-badge-custom status-badge-pending">
+                                                <i class="bi bi-hourglass-split"></i> Chờ duyệt
+                                            </span>
+                                            <span th:case="'CONFIRMED'" class="status-badge-custom status-badge-confirmed">
+                                                <i class="bi bi-check-circle-fill"></i> Đã xác nhận
+                                            </span>
+                                            <span th:case="'SEATED'" class="status-badge-custom status-badge-seated">
+                                                <i class="bi bi-person-check-fill"></i> Đã nhận bàn
+                                            </span>
+                                            <span th:case="'COMPLETED'" class="status-badge-custom status-badge-completed">
+                                                <i class="bi bi-award-fill"></i> Hoàn tất
+                                            </span>
+                                            <span th:case="'CANCELLED'" class="status-badge-custom status-badge-cancelled">
+                                                <i class="bi bi-x-circle-fill"></i> Đã hủy
+                                            </span>
+                                        </span>
+                                    </td>
+                                    <td style="text-align:center; vertical-align:middle;">
+                                        <div style="display:inline-flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; width:95px; margin:0 auto;">
+                                            <!-- Button Chi tiết -->
+                                            <button type="button" class="btn-table-action-detail" th:data-id="${b.id}" th:onclick="|openBookingDetail(${b.id})|" title="Xem chi tiết đơn đặt bàn" style="width:100%; justify-content:center;">
+                                                <i class="bi bi-info-circle-fill"></i> Chi tiết
                                             </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
 
-                <!-- Trường Hợp Danh Sách Trống (Chưa có đơn hoặc không tìm thấy) -->
-                <div th:if="${#lists.isEmpty(bookings)}" class="empty-preorder-container" style="text-align:center; padding: 48px 20px; background: #FFF9F2; border-radius: 16px; border: 1.5px dashed rgba(155,15,6,0.2); margin-top: 10px;">
-                    <i class="bi bi-calendar-x" style="font-size:3rem; color:#D53E0F; display:block; margin-bottom:12px;"></i>
-                    <div style="font-size:1.15rem; font-weight:800; color:#5E0006; margin-bottom:6px;">Không tìm thấy đơn đặt bàn nào</div>
-                    <p style="font-size:0.9rem; color:#9a7060; margin-bottom:20px; max-width:550px; margin-left:auto; margin-right:auto;">
-                        Quý khách vui lòng nhập Số điện thoại hoặc Email chính xác vào ô tra cứu ở trên, hoặc tạo một đơn đặt bàn mới trực tuyến.
-                    </p>
-                    <a th:href="@{/customer/booking}" href="/customer/booking" class="btn-header-booking" style="display:inline-flex; padding:10px 26px; text-decoration:none; font-size:0.95rem;">
-                        <i class="bi bi-calendar-plus-fill"></i> Đặt Bàn Ngay
-                    </a>
+                                            <!-- Button Hủy đơn (Chỉ hiển thị khi Trạng thái là PENDING) -->
+                                            <form th:if="${b.status.name() == 'PENDING'}"
+                                                  th:action="${'/customer/booking-history/' + b.id + '/cancel'}" method="post"
+                                                  style="display:block; width:100%; margin:0;">
+                                                <input type="hidden" name="keyword" th:value="${keyword}" />
+                                                <button type="submit" class="btn-table-action-cancel" title="Hủy đơn đặt bàn này" style="width:100%; justify-content:center;"
+                                                        onclick="return confirm('Bạn có chắc chắn muốn hủy đơn đặt bàn này?');">
+                                                    <i class="bi bi-x-circle-fill"></i> Hủy đơn
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Trường Hợp Danh Sách Trống (Chưa có đơn hoặc không tìm thấy) -->
+                    <div th:if="${#lists.isEmpty(bookings)}" class="empty-preorder-container" style="text-align:center; padding: 48px 20px; background: #FFF9F2; border-radius: 16px; border: 1.5px dashed rgba(155,15,6,0.2); margin-top: 10px;">
+                        <i class="bi bi-calendar-x" style="font-size:3rem; color:#D53E0F; display:block; margin-bottom:12px;"></i>
+                        <div style="font-size:1.15rem; font-weight:800; color:#5E0006; margin-bottom:6px;">Không tìm thấy đơn đặt bàn nào</div>
+                        <p style="font-size:0.9rem; color:#9a7060; margin-bottom:20px; max-width:550px; margin-left:auto; margin-right:auto;">
+                            Quý khách vui lòng nhập Số điện thoại hoặc Email chính xác vào ô tra cứu ở trên, hoặc tạo một đơn đặt bàn mới trực tuyến.
+                        </p>
+                        <a th:href="@{/customer/booking}" href="/customer/booking" class="btn-header-booking" style="display:inline-flex; padding:10px 26px; text-decoration:none; font-size:0.95rem;">
+                            <i class="bi bi-calendar-plus-fill"></i> Đặt Bàn Ngay
+                        </a>
+                    </div>
+
                 </div>
 
             </div>
@@ -1157,6 +1162,96 @@
             if (e.key === 'Escape') {
                 closeBookingDetailModal();
             }
+        });
+
+        // AJAX Search for Booking History without full page reload
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchForm = document.getElementById('searchBookingForm');
+            const searchInput = document.getElementById('searchInput');
+
+            function handleClearClick(e) {
+                if (e) e.preventDefault();
+                if (searchInput) searchInput.value = '';
+                performSearch('');
+            }
+
+            function updateClearButton(keyword) {
+                let clearBtn = document.getElementById('clearSearchBtn');
+                if (keyword && keyword.trim() !== '') {
+                    if (!clearBtn && searchForm) {
+                        clearBtn = document.createElement('a');
+                        clearBtn.id = 'clearSearchBtn';
+                        clearBtn.href = '/customer/booking-history';
+                        clearBtn.className = 'btn-hero-secondary';
+                        clearBtn.style.whiteSpace = 'nowrap';
+                        clearBtn.innerHTML = '<i class="bi bi-x-lg"></i> Xóa lọc';
+                        searchForm.appendChild(clearBtn);
+                    }
+                    if (clearBtn) {
+                        clearBtn.style.display = 'inline-flex';
+                        clearBtn.onclick = handleClearClick;
+                    }
+                } else {
+                    if (clearBtn) {
+                        clearBtn.style.display = 'none';
+                    }
+                }
+            }
+
+            const initialClearBtn = document.getElementById('clearSearchBtn');
+            if (initialClearBtn) {
+                initialClearBtn.addEventListener('click', handleClearClick);
+            }
+
+            if (searchForm) {
+                searchForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const keyword = searchInput ? searchInput.value.trim() : '';
+                    performSearch(keyword);
+                });
+            }
+
+            function performSearch(keyword) {
+                const listSection = document.getElementById('bookingListSection');
+                if (listSection) {
+                    listSection.style.opacity = '0.4';
+                    listSection.style.transition = 'opacity 0.2s ease-in-out';
+                }
+
+                const url = keyword ? '/customer/booking-history?keyword=' + encodeURIComponent(keyword) : '/customer/booking-history';
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Không thể tải danh sách đơn đặt bàn');
+                    return response.text();
+                })
+                .then(html => {
+                    if (listSection) {
+                        listSection.outerHTML = html;
+                        const newListSection = document.getElementById('bookingListSection');
+                        if (newListSection) {
+                            newListSection.style.opacity = '1';
+                        }
+                    }
+                    history.pushState({ keyword: keyword }, '', url);
+                    updateClearButton(keyword);
+                })
+                .catch(err => {
+                    console.error('Lỗi tra cứu đơn đặt bàn:', err);
+                    if (listSection) listSection.style.opacity = '1';
+                });
+            }
+
+            window.addEventListener('popstate', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const kw = urlParams.get('keyword') || '';
+                if (searchInput) searchInput.value = kw;
+                performSearch(kw);
+            });
         });
     </script>
 </body>

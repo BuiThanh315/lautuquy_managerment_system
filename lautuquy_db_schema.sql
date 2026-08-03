@@ -148,7 +148,7 @@ CREATE TABLE invoices (
 -- =========================================================
 CREATE TABLE feedbacks (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    account_id BIGINT NOT NULL,
+    account_id BIGINT NULL,
     dish_id    BIGINT NULL,
     content    TEXT NOT NULL,
     reply      TEXT NULL,

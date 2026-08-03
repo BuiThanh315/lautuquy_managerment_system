@@ -106,8 +106,8 @@
                             <tbody>
                                 <tr th:each="fb : ${feedbacks}">
                                     <td>
-                                        <div style="font-weight:600;" th:text="${fb.account != null ? fb.account.fullName : '—'}"></div>
-                                        <div style="font-size:0.75rem; color:var(--clr-text-muted);" th:text="${fb.account != null ? fb.account.username : '—'}"></div>
+                                        <div style="font-weight:600;" th:text="${fb.account != null ? fb.account.fullName : 'Khách vãng lai'}"></div>
+                                        <div style="font-size:0.75rem; color:var(--clr-text-muted);" th:text="${fb.account != null ? fb.account.username : 'Chưa đăng ký'}"></div>
                                     </td>
                                     <td>
                                         <span class="badge badge-info" th:text="${fb.dish != null ? fb.dish.name : 'Chung'}"></span>

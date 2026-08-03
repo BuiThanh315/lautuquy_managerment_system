@@ -21,19 +21,22 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final RestaurantTableRepository tableRepository;
     private final BookingService bookingService;
     private final OrderItemRepository orderItemRepository;
+    private final com.lautuquy.management.service.OrderService orderService;
 
     public InvoiceServiceImpl(InvoiceRepository invoiceRepository,
                               OrderRepository orderRepository,
                               BookingRepository bookingRepository,
                               RestaurantTableRepository tableRepository,
                               BookingService bookingService,
-                              OrderItemRepository orderItemRepository) {
+                              OrderItemRepository orderItemRepository,
+                              com.lautuquy.management.service.OrderService orderService) {
         this.invoiceRepository = invoiceRepository;
         this.orderRepository = orderRepository;
         this.bookingRepository = bookingRepository;
         this.tableRepository = tableRepository;
         this.bookingService = bookingService;
         this.orderItemRepository = orderItemRepository;
+        this.orderService = orderService;
     }
 
     @Override
@@ -79,7 +82,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         Order order = orderRepository.findFirstByBookingIdAndStatus(bookingId, Order.Status.PROCESSING)
                 .orElseGet(() -> orderRepository.findByBookingId(bookingId).stream().findFirst()
-                        .orElseThrow(() -> new ResourceNotFoundException("Đơn gọi món của booking", bookingId)));
+                        .orElseGet(() -> orderService.getOrCreateActiveOrderForBooking(bookingId)));
 
         List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
         BigDecimal totalAmount = items.stream().map(OrderItem::getSubtotal).reduce(BigDecimal.ZERO, BigDecimal::add);

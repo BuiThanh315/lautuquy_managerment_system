@@ -516,7 +516,7 @@ public class BookingServiceImpl implements BookingService {
             case PENDING -> "Chờ duyệt";
             case CONFIRMED -> "Đã xác nhận";
             case SEATED -> "Đã nhận bàn";
-            case COMPLETED -> "Hoàn tất";
+            case COMPLETED -> "Đã thanh toán";
             case CANCELLED -> "Đã hủy";
         };
         dto.setStatusDisplayName(statusDisplay);

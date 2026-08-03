@@ -21,7 +21,7 @@ public class Order {
     private Booking booking;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "account_id")
+    @JoinColumn(name = "account_id", nullable = true)
     private Account account;
 
     @ManyToOne(fetch = FetchType.EAGER)

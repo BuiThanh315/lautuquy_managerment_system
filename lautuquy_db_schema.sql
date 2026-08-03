@@ -106,7 +106,7 @@ CREATE TABLE booking_preorders (
 CREATE TABLE orders (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
     booking_id BIGINT,
-    account_id BIGINT NOT NULL,
+    account_id BIGINT,
     table_id   BIGINT NOT NULL,
     order_type ENUM('DINE_IN','TAKE_AWAY') NOT NULL DEFAULT 'DINE_IN',
     status     ENUM('PROCESSING','COMPLETED','CANCELLED') NOT NULL DEFAULT 'PROCESSING',

@@ -8,17 +8,18 @@ import com.lautuquy.management.repository.OrderItemRepository;
 import com.lautuquy.management.service.BookingService;
 import com.lautuquy.management.service.InvoiceService;
 import com.lautuquy.management.service.OrderService;
+import com.lautuquy.management.service.PaymentSessionService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/customer/payment")
@@ -28,22 +29,27 @@ public class CustomerPaymentController {
     private final OrderService orderService;
     private final InvoiceService invoiceService;
     private final OrderItemRepository orderItemRepository;
+    private final PaymentSessionService paymentSessionService;
 
     public CustomerPaymentController(BookingService bookingService,
                                      OrderService orderService,
                                      InvoiceService invoiceService,
-                                     OrderItemRepository orderItemRepository) {
+                                     OrderItemRepository orderItemRepository,
+                                     PaymentSessionService paymentSessionService) {
         this.bookingService = bookingService;
         this.orderService = orderService;
         this.invoiceService = invoiceService;
         this.orderItemRepository = orderItemRepository;
+        this.paymentSessionService = paymentSessionService;
     }
 
     /**
      * Hiển thị trang Thanh toán dành cho Khách hàng.
      */
     @GetMapping
-    public String viewCustomerPayment(Authentication authentication, Model model) {
+    public String viewCustomerPayment(@RequestParam(value = "sessionId", required = false) String sessionId,
+                                      Authentication authentication,
+                                      Model model) {
         if (authentication != null) {
             String username = authentication.getName();
             Booking seatedBooking = bookingService.getActiveSeatedBooking(username);
@@ -61,9 +67,28 @@ public class CustomerPaymentController {
                 model.addAttribute("isSeated", true);
             }
         }
+        model.addAttribute("sessionId", sessionId);
         model.addAttribute("pageTitle", "Xác Nhận Thanh Toán — Lẩu Tứ Quý");
 
         return "customer/payment";
+    }
+
+    /**
+     * API xác nhận thanh toán tạm thời theo sessionId (gửi từ điện thoại).
+     */
+    @PostMapping("/api-confirm")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> confirmPaymentSessionApi(@RequestParam(value = "sessionId", required = false) String sessionId) {
+        Map<String, Object> response = new HashMap<>();
+        if (sessionId != null && !sessionId.trim().isEmpty()) {
+            paymentSessionService.confirmSession(sessionId.trim());
+            response.put("success", true);
+            response.put("message", "Xác nhận thanh toán thành công!");
+            return ResponseEntity.ok(response);
+        }
+        response.put("success", false);
+        response.put("message", "Mã phiên làm việc không hợp lệ.");
+        return ResponseEntity.badRequest().body(response);
     }
 
     /**

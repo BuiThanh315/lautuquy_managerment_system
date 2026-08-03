@@ -12,11 +12,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import org.springframework.scheduling.annotation.EnableScheduling;
+
 /**
  * Điểm khởi động của ứng dụng Quản lý Nhà hàng Lẩu Tứ Quý.
  * Tự động seed dữ liệu mẫu ban đầu cho CSDL (Accounts, TableTypes, Tables, Categories, Dishes, Bookings).
  */
 @SpringBootApplication
+@EnableScheduling
 public class LauTuQuyApplication {
 
     public static void main(String[] args) {

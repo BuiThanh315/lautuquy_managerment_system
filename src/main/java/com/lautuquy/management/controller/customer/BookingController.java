@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.lautuquy.management.service.PaymentSessionService;
+
 @Controller
 @RequestMapping("/customer")
 public class BookingController {
@@ -33,17 +35,20 @@ public class BookingController {
     private final DishService dishService;
     private final AccountService accountService;
     private final com.lautuquy.management.service.TableLockService tableLockService;
+    private final PaymentSessionService paymentSessionService;
 
     public BookingController(BookingService bookingService,
                              TableService tableService,
                              DishService dishService,
                              AccountService accountService,
-                             com.lautuquy.management.service.TableLockService tableLockService) {
+                             com.lautuquy.management.service.TableLockService tableLockService,
+                             PaymentSessionService paymentSessionService) {
         this.bookingService = bookingService;
         this.tableService = tableService;
         this.dishService = dishService;
         this.accountService = accountService;
         this.tableLockService = tableLockService;
+        this.paymentSessionService = paymentSessionService;
     }
 
     @GetMapping("/booking")
@@ -259,5 +264,25 @@ public class BookingController {
             return "redirect:/customer/booking-history?keyword=" + java.net.URLEncoder.encode(keyword, java.nio.charset.StandardCharsets.UTF_8);
         }
         return "redirect:/customer/booking-history";
+    }
+
+    @GetMapping("/api/create-payment-session")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createPaymentSessionApi() {
+        String sessionId = paymentSessionService.createSession();
+        Map<String, Object> res = new HashMap<>();
+        res.put("success", true);
+        res.put("sessionId", sessionId);
+        return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/api/check-payment-session")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> checkPaymentSessionApi(@RequestParam("sessionId") String sessionId) {
+        boolean confirmed = paymentSessionService.isSessionConfirmed(sessionId);
+        Map<String, Object> res = new HashMap<>();
+        res.put("success", true);
+        res.put("confirmed", confirmed);
+        return ResponseEntity.ok(res);
     }
 }

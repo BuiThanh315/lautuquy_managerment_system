@@ -236,14 +236,22 @@
         </button>
     </div>
 
-    <script>
+    <script th:inline="javascript">
         document.addEventListener('DOMContentLoaded', function () {
             const btnSubmitPayment = document.getElementById('btnSubmitPayment');
-            const statusInfoBox = document.getElementById('statusInfoBox');
             const statusIcon = document.getElementById('statusIcon');
             const statusMessage = document.getElementById('statusMessage');
             const paymentAlert = document.getElementById('payment-alert');
-            const paymentForm = document.getElementById('paymentForm');
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlSessionId = urlParams.get('sessionId');
+            /*[# th:if="${sessionId != null}"]*/
+            const serverSessionId = /*[[${sessionId}]]*/ null;
+            /*[/]*/
+            /*[# th:unless="${sessionId != null}"]*/
+            const serverSessionId = null;
+            /*[/]*/
+            const sessionId = urlSessionId || serverSessionId;
 
             function checkFormCompletedStatus() {
                 const isFormCompleted = localStorage.getItem('bookingFormCompleted') === 'true';
@@ -261,7 +269,8 @@
                     return;
                 }
 
-                if (isFormCompleted) {
+                // Nếu có sessionId từ QR code HOẶC điền đủ form trên trình duyệt này
+                if (sessionId || isFormCompleted) {
                     btnSubmitPayment.disabled = false;
                     btnSubmitPayment.classList.remove('disabled-style');
                     btnSubmitPayment.innerHTML = `<i class="bi bi-cash-coin"></i> Xác Nhận Thanh Toán`;
@@ -269,7 +278,7 @@
                     
                     statusIcon.className = 'bi bi-check-circle-fill';
                     statusIcon.style.color = '#10B981';
-                    statusMessage.textContent = 'Thông tin đặt bàn đã đầy đủ. Bạn có thể bấm Xác Nhận Thanh Toán ngay bây giờ!';
+                    statusMessage.textContent = 'Sẵn sàng xác nhận thanh toán cọc giữ bàn. Bạn có thể bấm nút Xác Nhận Thanh Toán bên dưới!';
                 } else {
                     btnSubmitPayment.disabled = true;
                     btnSubmitPayment.classList.add('disabled-style');
@@ -277,7 +286,7 @@
                     
                     statusIcon.className = 'bi bi-exclamation-triangle-fill';
                     statusIcon.style.color = '#D53E0F';
-                    statusMessage.textContent = 'Vui lòng điền đầy đủ các thông tin bắt buộc tại trang Đặt Bàn trước!';
+                    statusMessage.textContent = 'Vui lòng mở trang này qua mã QR đặt bàn hoặc điền đầy đủ thông tin đặt bàn trước!';
                 }
             }
 
@@ -292,23 +301,42 @@
             });
 
             // Handle Payment Button Click
-            btnSubmitPayment.addEventListener('click', function () {
+            btnSubmitPayment.addEventListener('click', async function () {
                 if (btnSubmitPayment.disabled) return;
 
-                // Save confirmed payment state to localStorage
+                btnSubmitPayment.disabled = true;
+                btnSubmitPayment.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Đang xác nhận...`;
+
+                // Lưu trạng thái local storage
                 localStorage.setItem('paymentConfirmed', 'true');
 
+                // Nếu có sessionId, gửi API báo cho server (để PC tự nhận)
+                if (sessionId) {
+                    try {
+                        const formData = new URLSearchParams();
+                        formData.append('sessionId', sessionId);
+                        await fetch('/customer/payment/api-confirm', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: formData.toString()
+                        });
+                    } catch (e) {
+                        console.error('Error confirming payment session:', e);
+                    }
+                }
+
                 // Update UI state
+                btnSubmitPayment.disabled = false;
                 btnSubmitPayment.innerHTML = `<i class="bi bi-check-circle-fill"></i> Đã Xác Nhận Thanh Toán`;
                 btnSubmitPayment.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
 
                 statusIcon.className = 'bi bi-check-circle-fill';
                 statusIcon.style.color = '#10B981';
-                statusMessage.textContent = 'Xác nhận thanh toán thành công! Nút "Xác Nhận Đặt Bàn Ngay" tại trang Đặt Bàn đã được mở.';
+                statusMessage.textContent = 'Xác nhận thanh toán thành công! Nút "Xác Nhận Đặt Bàn Ngay" tại màn hình đặt bàn đã được tự động mở khóa.';
 
                 paymentAlert.className = 'alert-success-custom';
                 paymentAlert.style.display = 'block';
-                paymentAlert.innerHTML = '<i class="bi bi-check-circle-fill"></i> Thanh toán thành công! Bạn có thể quay lại trang Đặt Bàn.';
+                paymentAlert.innerHTML = '<i class="bi bi-check-circle-fill"></i> Thanh toán cọc thành công! Bạn có thể quay lại trang Đặt Bàn để bấm Xác Nhận Đặt Bàn.';
             });
 
             // Handle "Quay lại trang Đặt Bàn" Click -> Close Payment Window

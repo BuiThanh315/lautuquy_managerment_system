@@ -1473,13 +1473,55 @@
             const submitHelpText = document.getElementById('bookingSubmitHelpText');
             const btnSubmitBooking = document.getElementById('btnSubmitBooking');
 
-            // Tạo mã QR trỏ chính xác tới trang thanh toán (/customer/payment)
-            const paymentUrl = window.location.origin + '/customer/payment';
-            if (qrImg) {
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(paymentUrl)}`;
+            let currentPaymentSessionId = sessionStorage.getItem('paymentSessionId');
+            let isServerPaymentConfirmed = false;
+
+            async function initPaymentSession() {
+                if (!currentPaymentSessionId) {
+                    try {
+                        const res = await fetch('/customer/api/create-payment-session');
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data.sessionId) {
+                                currentPaymentSessionId = data.sessionId;
+                                sessionStorage.setItem('paymentSessionId', currentPaymentSessionId);
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error creating payment session:', e);
+                    }
+                }
+                if (!currentPaymentSessionId) {
+                    currentPaymentSessionId = 'sess_' + Math.random().toString(36).substring(2, 11);
+                    sessionStorage.setItem('paymentSessionId', currentPaymentSessionId);
+                }
+
+                // Cập nhật mã QR và Link Thanh toán có chứa sessionId
+                const paymentUrl = window.location.origin + '/customer/payment?sessionId=' + encodeURIComponent(currentPaymentSessionId);
+                if (qrImg) {
+                    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(paymentUrl)}`;
+                }
+                if (qrPaymentLink) {
+                    qrPaymentLink.href = paymentUrl;
+                }
+                document.querySelectorAll('a[href*="/customer/payment"]').forEach(link => {
+                    link.href = paymentUrl;
+                });
             }
-            if (qrPaymentLink) {
-                qrPaymentLink.href = paymentUrl;
+
+            async function checkServerPaymentSession() {
+                if (!currentPaymentSessionId || isServerPaymentConfirmed) return;
+                try {
+                    const res = await fetch('/customer/api/check-payment-session?sessionId=' + encodeURIComponent(currentPaymentSessionId));
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.confirmed) {
+                            isServerPaymentConfirmed = true;
+                            localStorage.setItem('paymentConfirmed', 'true');
+                            updateBookingSubmitButtonState();
+                        }
+                    }
+                } catch (e) { }
             }
 
             function validateBookingInputs() {
@@ -1496,6 +1538,7 @@
                 } else {
                     localStorage.setItem('bookingFormCompleted', 'false');
                     localStorage.setItem('paymentConfirmed', 'false');
+                    isServerPaymentConfirmed = false;
                 }
                 updateBookingSubmitButtonState();
             }
@@ -1503,7 +1546,7 @@
             function updateBookingSubmitButtonState() {
                 if (!btnSubmitBooking) return;
                 const isFormCompleted = localStorage.getItem('bookingFormCompleted') === 'true';
-                const isPaymentConfirmed = localStorage.getItem('paymentConfirmed') === 'true';
+                const isPaymentConfirmed = isServerPaymentConfirmed || localStorage.getItem('paymentConfirmed') === 'true';
 
                 if (isPaymentConfirmed && isFormCompleted) {
                     btnSubmitBooking.disabled = false;
@@ -1538,9 +1581,14 @@
                 }
             });
 
-            validateBookingInputs();
-            updateBookingSubmitButtonState();
-            setInterval(updateBookingSubmitButtonState, 1000);
+            initPaymentSession().then(() => {
+                validateBookingInputs();
+                updateBookingSubmitButtonState();
+                setInterval(() => {
+                    checkServerPaymentSession();
+                    updateBookingSubmitButtonState();
+                }, 1500);
+            });
 
             // Xóa bộ nhớ đặt trước khi người dùng submit đơn đặt bàn thành công
             const bookingForm = document.getElementById('bookingForm');

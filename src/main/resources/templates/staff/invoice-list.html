@@ -77,7 +77,9 @@
                                     <th>Số HĐ</th>
                                     <th>Khách hàng</th>
                                     <th>Bàn ăn</th>
-                                    <th>Tổng tiền</th>
+                                    <th>Tổng tiền món</th>
+                                    <th>Tiền cọc</th>
+                                    <th>Thực thu</th>
                                     <th>Phương thức</th>
                                     <th>Trạng thái</th>
                                     <th>Thời gian</th>
@@ -92,6 +94,8 @@
                                         <div style="font-size:0.75rem; color:var(--clr-text-muted);" th:text="${inv.order.account != null ? inv.order.account.username : '—'}"></div>
                                     </td>
                                     <td th:text="${inv.order.table != null ? 'Bàn ' + inv.order.table.tableNumber : '—'}"></td>
+                                    <td th:text="${#numbers.formatDecimal(inv.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                                    <td style="color:#d97706; font-weight:600;" th:text="${inv.depositAmount != null and inv.depositAmount > 0} ? ('- ' + ${#numbers.formatDecimal(inv.depositAmount, 0, 'COMMA', 0, 'POINT')} + ' đ') : '0 đ'"></td>
                                     <td style="font-weight:700; color:var(--clr-gold);" th:text="${#numbers.formatDecimal(inv.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
                                     <td th:text="${inv.paymentMethod}"></td>
                                     <td>
@@ -106,7 +110,7 @@
                                     </td>
                                 </tr>
                                 <tr th:if="${invoices == null || invoices.isEmpty()}">
-                                    <td colspan="8" style="text-align:center; padding:36px; color:var(--clr-text-muted);">
+                                    <td colspan="10" style="text-align:center; padding:36px; color:var(--clr-text-muted);">
                                         Chưa có hóa đơn nào được khởi tạo.
                                     </td>
                                 </tr>

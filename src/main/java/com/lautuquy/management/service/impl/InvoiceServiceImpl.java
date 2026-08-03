@@ -22,6 +22,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final BookingService bookingService;
     private final OrderItemRepository orderItemRepository;
     private final com.lautuquy.management.service.OrderService orderService;
+    private final BookingPreorderRepository bookingPreorderRepository;
 
     public InvoiceServiceImpl(InvoiceRepository invoiceRepository,
                               OrderRepository orderRepository,
@@ -29,7 +30,8 @@ public class InvoiceServiceImpl implements InvoiceService {
                               RestaurantTableRepository tableRepository,
                               BookingService bookingService,
                               OrderItemRepository orderItemRepository,
-                              com.lautuquy.management.service.OrderService orderService) {
+                              com.lautuquy.management.service.OrderService orderService,
+                              BookingPreorderRepository bookingPreorderRepository) {
         this.invoiceRepository = invoiceRepository;
         this.orderRepository = orderRepository;
         this.bookingRepository = bookingRepository;
@@ -37,6 +39,40 @@ public class InvoiceServiceImpl implements InvoiceService {
         this.bookingService = bookingService;
         this.orderItemRepository = orderItemRepository;
         this.orderService = orderService;
+        this.bookingPreorderRepository = bookingPreorderRepository;
+    }
+
+    private BigDecimal calculateDepositAmount(Order order) {
+        if (order == null || order.getBooking() == null) {
+            return BigDecimal.ZERO;
+        }
+        Long bookingId = order.getBooking().getId();
+        List<BookingPreorder> preorders = bookingPreorderRepository.findByBookingId(bookingId);
+        if (preorders == null || preorders.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal preorderTotal = BigDecimal.ZERO;
+        for (BookingPreorder po : preorders) {
+            Dish dish = po.getDish();
+            BigDecimal price = (dish != null && dish.getPrice() != null) ? dish.getPrice() : BigDecimal.ZERO;
+            int qty = po.getQuantity() != null ? po.getQuantity() : 0;
+            preorderTotal = preorderTotal.add(price.multiply(BigDecimal.valueOf(qty)));
+        }
+        return preorderTotal.multiply(new BigDecimal("0.50"));
+    }
+
+    private void ensureDepositAndFinalAmount(Invoice invoice) {
+        if (invoice == null || invoice.getOrder() == null) return;
+        BigDecimal deposit = calculateDepositAmount(invoice.getOrder());
+        BigDecimal total = invoice.getTotalAmount() != null ? invoice.getTotalAmount() : BigDecimal.ZERO;
+        if (deposit.compareTo(BigDecimal.ZERO) > 0) {
+            invoice.setDepositAmount(deposit);
+            BigDecimal net = total.subtract(deposit);
+            if (net.compareTo(BigDecimal.ZERO) < 0) net = BigDecimal.ZERO;
+            invoice.setFinalAmount(net);
+        } else if (invoice.getDepositAmount() == null) {
+            invoice.setDepositAmount(BigDecimal.ZERO);
+        }
     }
 
     @Override
@@ -52,20 +88,25 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         List<OrderItem> items = orderItemRepository.findByOrderId(activeOrder.getId());
         BigDecimal totalAmount = items.stream().map(OrderItem::getSubtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal depositAmount = calculateDepositAmount(activeOrder);
+        BigDecimal netAmount = totalAmount.subtract(depositAmount);
+        BigDecimal finalAmount = netAmount.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : netAmount;
 
         Optional<Invoice> existingInvoiceOpt = invoiceRepository.findByOrderId(activeOrder.getId());
         Invoice invoice;
         if (existingInvoiceOpt.isPresent()) {
             invoice = existingInvoiceOpt.get();
             invoice.setTotalAmount(totalAmount);
-            invoice.setFinalAmount(totalAmount);
+            invoice.setDepositAmount(depositAmount);
+            invoice.setFinalAmount(finalAmount);
             invoice.setPaymentMethod(paymentMethod != null ? paymentMethod : Invoice.PaymentMethod.CASH);
             invoice.setPaymentStatus(Invoice.PaymentStatus.UNPAID);
         } else {
             invoice = new Invoice(
                     activeOrder,
                     totalAmount,
-                    totalAmount,
+                    depositAmount,
+                    finalAmount,
                     paymentMethod != null ? paymentMethod : Invoice.PaymentMethod.CASH,
                     Invoice.PaymentStatus.UNPAID
             );
@@ -86,19 +127,24 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
         BigDecimal totalAmount = items.stream().map(OrderItem::getSubtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal depositAmount = calculateDepositAmount(order);
+        BigDecimal netAmount = totalAmount.subtract(depositAmount);
+        BigDecimal finalAmount = netAmount.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : netAmount;
 
         Optional<Invoice> existingInvoiceOpt = invoiceRepository.findByOrderId(order.getId());
         Invoice invoice;
         if (existingInvoiceOpt.isPresent()) {
             invoice = existingInvoiceOpt.get();
             invoice.setTotalAmount(totalAmount);
-            invoice.setFinalAmount(totalAmount);
+            invoice.setDepositAmount(depositAmount);
+            invoice.setFinalAmount(finalAmount);
             invoice.setPaymentStatus(Invoice.PaymentStatus.PAID);
         } else {
             invoice = new Invoice(
                     order,
                     totalAmount,
-                    totalAmount,
+                    depositAmount,
+                    finalAmount,
                     Invoice.PaymentMethod.CASH,
                     Invoice.PaymentStatus.PAID
             );
@@ -134,10 +180,17 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
         BigDecimal totalAmount = items.stream().map(OrderItem::getSubtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal depositAmount = calculateDepositAmount(order);
+        BigDecimal netAmount = totalAmount.subtract(depositAmount);
+        BigDecimal finalAmount = netAmount.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : netAmount;
+        Invoice.PaymentMethod method = paymentMethod != null ? paymentMethod : Invoice.PaymentMethod.CASH;
 
         Invoice invoice = invoiceRepository.findByOrderId(orderId).orElseGet(() -> new Invoice(
-                order, totalAmount, totalAmount, paymentMethod, Invoice.PaymentStatus.PAID
+                order, totalAmount, depositAmount, finalAmount, method, Invoice.PaymentStatus.PAID
         ));
+        invoice.setTotalAmount(totalAmount);
+        invoice.setDepositAmount(depositAmount);
+        invoice.setFinalAmount(finalAmount);
         invoice.setPaymentStatus(Invoice.PaymentStatus.PAID);
         if (paymentMethod != null) {
             invoice.setPaymentMethod(paymentMethod);
@@ -169,19 +222,25 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     @Transactional(readOnly = true)
     public Invoice getInvoiceById(Long id) {
-        return invoiceRepository.findById(id)
+        Invoice invoice = invoiceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hóa đơn", id));
+        ensureDepositAndFinalAmount(invoice);
+        return invoice;
     }
 
     @Override
     @Transactional(readOnly = true)
     public Invoice getInvoiceByBookingId(Long bookingId) {
-        return invoiceRepository.findByOrderBookingId(bookingId).orElse(null);
+        Invoice invoice = invoiceRepository.findByOrderBookingId(bookingId).orElse(null);
+        ensureDepositAndFinalAmount(invoice);
+        return invoice;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Invoice> getAllInvoices() {
-        return invoiceRepository.findAllByOrderByCreatedAtDesc();
+        List<Invoice> invoices = invoiceRepository.findAllByOrderByCreatedAtDesc();
+        invoices.forEach(this::ensureDepositAndFinalAmount);
+        return invoices;
     }
 }

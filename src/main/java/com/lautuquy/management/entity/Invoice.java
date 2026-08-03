@@ -29,6 +29,9 @@ public class Invoice {
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 0)
     private BigDecimal totalAmount;
 
+    @Column(name = "deposit_amount", nullable = false, precision = 12, scale = 0)
+    private BigDecimal depositAmount = BigDecimal.ZERO;
+
     @Column(name = "final_amount", nullable = false, precision = 12, scale = 0)
     private BigDecimal finalAmount;
 
@@ -48,6 +51,16 @@ public class Invoice {
     public Invoice(Order order, BigDecimal totalAmount, BigDecimal finalAmount, PaymentMethod paymentMethod, PaymentStatus paymentStatus) {
         this.order = order;
         this.totalAmount = totalAmount;
+        this.depositAmount = BigDecimal.ZERO;
+        this.finalAmount = finalAmount;
+        this.paymentMethod = paymentMethod;
+        this.paymentStatus = paymentStatus;
+    }
+
+    public Invoice(Order order, BigDecimal totalAmount, BigDecimal depositAmount, BigDecimal finalAmount, PaymentMethod paymentMethod, PaymentStatus paymentStatus) {
+        this.order = order;
+        this.totalAmount = totalAmount;
+        this.depositAmount = depositAmount != null ? depositAmount : BigDecimal.ZERO;
         this.finalAmount = finalAmount;
         this.paymentMethod = paymentMethod;
         this.paymentStatus = paymentStatus;
@@ -75,6 +88,14 @@ public class Invoice {
 
     public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
+    }
+
+    public BigDecimal getDepositAmount() {
+        return depositAmount;
+    }
+
+    public void setDepositAmount(BigDecimal depositAmount) {
+        this.depositAmount = depositAmount != null ? depositAmount : BigDecimal.ZERO;
     }
 
     public BigDecimal getFinalAmount() {
